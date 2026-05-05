@@ -70,10 +70,10 @@ const EntryForm = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const data = schema.parse(form);
+      schema.parse(form);
       const payload = {
-        ...data,
-        contact_number: data.contact_number || null,
+        ...form,
+        contact_number: form.contact_number || null,
         user_id: user!.id,
         total_km: billing.totalKm, total_hours: billing.totalHours,
         extra_km: billing.extraKm, extra_hours: billing.extraHours,
