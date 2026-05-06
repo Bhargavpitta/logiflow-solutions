@@ -7,14 +7,18 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TopNav } from '@/components/TopNav';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OWNERSHIP, PACKAGES, VEHICLE_TYPES, formatINR } from '@/lib/billing';
 import { exportToExcel, generateInvoicePDF, EntryRow } from '@/lib/exporters';
 
 interface Entry extends EntryRow { id: string; user_id: string; created_at: string; }
 
-const Dashboard = ({ adminMode = false }: { adminMode?: boolean }) => {
-  const { user, isAdmin, loading: authLoading } = useAuth();
+/**
+ * Unified records table.
+ *  - mode="admin"  → admins only. Sees ALL drivers, can edit/delete/export/invoice.
+ *  - mode="user"   → regular users. Sees own entries, can edit only. No invoice/delete.
+ */
+const Dashboard = ({ mode = 'admin' }: { mode?: 'admin' | 'user' }) => {
+  const { user, isAdmin, role, loading: authLoading } = useAuth();
   const nav = useNavigate();
   const [rows, setRows] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,15 +26,26 @@ const Dashboard = ({ adminMode = false }: { adminMode?: boolean }) => {
   const [to, setTo] = useState('');
   const [q, setQ] = useState('');
 
-  useEffect(() => { if (!authLoading && !user) nav('/auth'); }, [user, authLoading, nav]);
-  useEffect(() => { if (adminMode && !authLoading && user && !isAdmin) { toast.error('Admins only'); nav('/dashboard'); } }, [adminMode, isAdmin, user, authLoading, nav]);
+  // Auth + role gating
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) { nav('/auth'); return; }
+    if (mode === 'admin' && role && !isAdmin) {
+      // Non-admins should never see the admin dashboard
+      nav('/my', { replace: true });
+    }
+    if (mode === 'user' && isAdmin) {
+      // Admins land on the admin dashboard
+      nav('/dashboard', { replace: true });
+    }
+  }, [user, role, isAdmin, authLoading, mode, nav]);
 
-  useEffect(() => { if (user) load(); }, [user, adminMode]);
+  useEffect(() => { if (user) load(); }, [user, mode]);
 
   async function load() {
     setLoading(true);
     let query = supabase.from('logistics_entries').select('*').order('logistics_date', { ascending: false });
-    if (!adminMode) query = query.eq('user_id', user!.id);
+    if (mode === 'user') query = query.eq('user_id', user!.id);
     const { data, error } = await query;
     if (error) toast.error(error.message);
     else setRows((data as Entry[]) ?? []);
@@ -63,39 +78,37 @@ const Dashboard = ({ adminMode = false }: { adminMode?: boolean }) => {
     else { toast.success('Entry deleted'); load(); }
   };
 
+  const isAdminMode = mode === 'admin';
+
   return (
     <div className="min-h-screen">
       <TopNav />
       <div className="container py-8 space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">
-                {adminMode ? 'Driver Records' : 'My Logistics'}
-              </h1>
-              {isAdmin && (
-                <Tabs value={adminMode ? 'admin' : 'user'} onValueChange={(v) => nav(v === 'admin' ? '/admin' : '/dashboard')}>
-                  <TabsList>
-                    <TabsTrigger value="user">My View</TabsTrigger>
-                    <TabsTrigger value="admin">Admin View</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              )}
-            </div>
+            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">
+              {isAdminMode ? 'Driver Records' : 'My Logistics'}
+            </h1>
             <p className="text-muted-foreground text-sm">
-              {adminMode ? 'Manage and export fleet performance data.' : 'View, edit, and export your trip submissions.'}
+              {isAdminMode
+                ? 'Manage and export fleet performance data across all drivers.'
+                : 'View and edit your trip submissions.'}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild className="bg-gradient-primary shadow-glow">
               <Link to="/entry"><Plus className="h-4 w-4 mr-1" /> New Entry</Link>
             </Button>
-            <Button variant="outline" className="glass" onClick={() => exportToExcel(filtered)}>
-              <Download className="h-4 w-4 mr-1" /> Export Excel
-            </Button>
-            <Button variant="outline" className="glass" onClick={() => generateInvoicePDF(filtered, { from, to })}>
-              <FileText className="h-4 w-4 mr-1" /> Generate Invoice
-            </Button>
+            {isAdminMode && (
+              <>
+                <Button variant="outline" className="glass" onClick={() => exportToExcel(filtered)}>
+                  <Download className="h-4 w-4 mr-1" /> Export Excel
+                </Button>
+                <Button variant="outline" className="glass" onClick={() => generateInvoicePDF(filtered, { from, to })}>
+                  <FileText className="h-4 w-4 mr-1" /> Generate Invoice
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -150,9 +163,7 @@ const Dashboard = ({ adminMode = false }: { adminMode?: boolean }) => {
                 ) : filtered.map((r) => (
                   <tr key={r.id} className="border-b border-border/40 hover:bg-accent/30 transition">
                     <Td mono>{r.logistics_date}</Td>
-                    <Td>
-                      <div className="font-semibold">{r.driver_name}</div>
-                    </Td>
+                    <Td><div className="font-semibold">{r.driver_name}</div></Td>
                     <Td className="text-muted-foreground">{r.contact_number ?? '—'}</Td>
                     <Td mono>{r.vehicle_number}</Td>
                     <Td className="text-muted-foreground">{r.vehicle_model}</Td>
@@ -170,14 +181,22 @@ const Dashboard = ({ adminMode = false }: { adminMode?: boolean }) => {
                     <Td right className="font-bold">{formatINR(Number(r.total_amount))}</Td>
                     <Td>
                       <div className="flex gap-1">
-                        {(r.user_id === user?.id || isAdmin) && (
-                          <Button asChild variant="ghost" size="icon" className="h-7 w-7">
+                        {/* Edit: user on own entries OR admin on any entry */}
+                        {(r.user_id === user?.id || isAdminMode) && (
+                          <Button asChild variant="ghost" size="icon" className="h-7 w-7" title="Edit">
                             <Link to={`/entry/${r.id}`}><Pencil className="h-3.5 w-3.5" /></Link>
                           </Button>
                         )}
-                        {(r.user_id === user?.id || isAdmin) && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-destructive" onClick={() => remove(r.id)}>
+                        {/* Delete: admin only */}
+                        {isAdminMode && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-destructive" onClick={() => remove(r.id)} title="Delete">
                             <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        {/* Per-row invoice: admin only */}
+                        {isAdminMode && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-primary" onClick={() => generateInvoicePDF([r])} title="Invoice">
+                            <FileText className="h-3.5 w-3.5" />
                           </Button>
                         )}
                       </div>

@@ -3,7 +3,7 @@ import { ArrowRight, BarChart3, FileSpreadsheet, Gauge, Lock, MapPin, Receipt } 
 import { Button } from '@/components/ui/button';
 import { TopNav } from '@/components/TopNav';
 import { HeroScene } from '@/components/HeroScene';
-import innovaHero from '@/assets/innova-hero.jpg';
+
 
 const Index = () => {
   return (
@@ -18,13 +18,13 @@ const Index = () => {
           <div className="space-y-8 animate-fade-in">
             <div className="inline-flex items-center gap-2 glass px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide">
               <span className="h-1.5 w-1.5 rounded-full bg-tertiary animate-pulse-glow" />
-              V2.0 ORCHESTRATION ENGINE LIVE
+              ONEHMT LOGISTICS · FLEET ENGINE
             </div>
             <h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.05]">
               Command your <span className="text-gradient">fleet</span> with architect-level precision.
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl">
-              LogiTrack Pro replaces fragmented Excel sheets with a unified command center. Real-time
+              OneHmt Logistics replaces fragmented Excel sheets with a unified command center. Real-time
               Innova Crysta billing, automated invoices, and admin-grade visibility — built for scale.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -45,24 +45,15 @@ const Index = () => {
             <div className="absolute inset-0">
               <HeroScene />
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-              <div className="glass rounded-2xl overflow-hidden">
-                <img
-                  src={innovaHero}
-                  alt="Toyota Innova Crysta — premium fleet vehicle"
-                  width={1536}
-                  height={1024}
-                  className="w-full h-40 object-cover"
-                />
-                <div className="p-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Active Vehicle</div>
-                    <div className="font-semibold">Innova Crysta · Fleet Tier 1</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-mono text-tertiary">● ROUTING</div>
-                    <div className="text-xs text-muted-foreground">12ms latency</div>
-                  </div>
+            <div className="absolute bottom-0 left-0 right-0 p-4 z-10 pointer-events-none">
+              <div className="glass rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Active Vehicle</div>
+                  <div className="font-semibold">Innova Crysta · Fleet Tier 1</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs font-mono text-tertiary">● ROUTING</div>
+                  <div className="text-xs text-muted-foreground">12ms latency</div>
                 </div>
               </div>
             </div>
@@ -122,7 +113,7 @@ const Index = () => {
       </section>
 
       <footer className="container py-8 text-sm text-muted-foreground flex justify-between">
-        <span>LogiTrack Pro © 2026</span>
+        <span>OneHmt Logistics © 2026</span>
         <span className="font-mono">v2.4.1</span>
       </footer>
     </div>

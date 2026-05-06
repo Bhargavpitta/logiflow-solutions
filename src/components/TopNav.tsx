@@ -23,19 +23,18 @@ export const TopNav = () => {
             <Truck className="h-5 w-5 text-primary-foreground" />
           </div>
           <div className="font-bold text-lg tracking-tight">
-            LogiTrack <span className="text-gradient">Pro</span>
+            OneHmt <span className="text-gradient">Logistics</span>
           </div>
         </Link>
         <nav className="flex items-center gap-2">
           {user && (
             <>
-              <Link to="/dashboard" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent transition">Dashboard</Link>
-              <Link to="/entry" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent transition">New Entry</Link>
-              {isAdmin && (
-                <Link to="/admin" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent transition">
-                  Admin
-                </Link>
+              {isAdmin ? (
+                <Link to="/dashboard" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent transition">Dashboard</Link>
+              ) : (
+                <Link to="/my" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent transition">My Entries</Link>
               )}
+              <Link to="/entry" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent transition">New Entry</Link>
             </>
           )}
           <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
