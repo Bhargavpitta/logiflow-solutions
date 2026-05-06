@@ -41,22 +41,8 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="relative aspect-square lg:aspect-[4/5] glass-strong rounded-3xl overflow-hidden animate-scale-in">
-            <div className="absolute inset-0">
-              <HeroScene />
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-4 z-10 pointer-events-none">
-              <div className="glass rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Active Vehicle</div>
-                  <div className="font-semibold">Innova Crysta · Fleet Tier 1</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs font-mono text-tertiary">● ROUTING</div>
-                  <div className="text-xs text-muted-foreground">12ms latency</div>
-                </div>
-              </div>
-            </div>
+          <div className="relative aspect-square lg:aspect-[4/5] animate-scale-in">
+            <HeroScene />
           </div>
         </div>
       </section>
