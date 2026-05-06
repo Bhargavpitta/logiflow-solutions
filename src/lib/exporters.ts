@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { OWNERSHIP, PACKAGES, VEHICLE_TYPES, formatINR } from './billing';
+import { OWNERSHIP, PACKAGES, VEHICLE_TYPES } from './billing';
 
 export interface EntryRow {
   driver_name: string; contact_number: string | null; vehicle_number: string;
