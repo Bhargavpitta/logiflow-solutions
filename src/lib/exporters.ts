@@ -54,63 +54,83 @@ export function generateInvoicePDF(rows: EntryRow[], opts?: { from?: string; to?
   const W = doc.internal.pageSize.getWidth();
   const M = 14;
 
-  // Invoice meta
   const invoiceNo = `INV-${new Date().getFullYear()}${String(Date.now()).slice(-4)}`;
   const today = new Date();
   const dueDate = new Date(today.getTime() + 30 * 86400000);
 
-  // ================= HEADER =================
-  doc.setFillColor(79, 70, 229);
-  doc.rect(0, 0, W, 38, 'F');
-  doc.setTextColor(255);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(22);
-  doc.text('OneHmt', M, 18);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-  doc.text('Logistics & Transport Services', M, 25);
+  // Brand colors
+  const ink: [number, number, number] = [20, 20, 30];
+  const muted: [number, number, number] = [130, 130, 145];
+  const line: [number, number, number] = [225, 228, 235];
+  const soft: [number, number, number] = [248, 250, 252];
+  const dark: [number, number, number] = [25, 28, 35];
 
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
-  doc.text('Invoice', W - M, 18, { align: 'right' });
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-  doc.text(`#${invoiceNo}`, W - M, 25, { align: 'right' });
-  doc.setFontSize(8);
-  doc.text(`Generated: ${today.toLocaleString('en-GB')}`, W - M, 31, { align: 'right' });
+  // ================= HEADER (white) =================
+  doc.setTextColor(...ink);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(26);
+  doc.text('OneHmt', M, 22);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+  doc.setTextColor(...muted);
+  doc.text('LOGISTICS & TRANSPORT SERVICES', M, 28);
+
+  // INVOICE pill (top right)
+  doc.setFillColor(...dark);
+  doc.rect(W - M - 22, 14, 22, 6, 'F');
+  doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+  doc.text('INVOICE', W - M - 11, 18, { align: 'center' });
+
+  doc.setTextColor(...ink); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+  doc.text(`#${invoiceNo}`, W - M, 26, { align: 'right' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+  doc.setTextColor(...muted);
+  doc.text(`Generated: ${today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}   ${today.toLocaleTimeString('en-GB')}`, W - M, 31, { align: 'right' });
+
+  // separator
+  doc.setDrawColor(...line); doc.setLineWidth(0.3);
+  doc.line(M, 38, W - M, 38);
 
   // ================= META BAR =================
-  let y = 46;
-  doc.setFillColor(245, 247, 255);
-  doc.rect(M, y, W - 2 * M, 9, 'F');
-  doc.setTextColor(60, 60, 90); doc.setFontSize(9);
+  let y = 44;
+  doc.setFontSize(8); doc.setTextColor(...muted);
   const period = opts?.from && opts?.to ? `${fmtDate(opts.from)} → ${fmtDate(opts.to)}` : 'Full Period Report';
   const driver = rows.length === 1 ? rows[0].driver_name : `${new Set(rows.map(r => r.driver_name)).size} drivers`;
   const vehicle = rows.length === 1 ? rows[0].vehicle_number : `${new Set(rows.map(r => r.vehicle_number)).size} vehicles`;
-  doc.text(`${period}   |   Driver: ${driver}   |   Vehicle: ${vehicle}   |   Status: Due`, M + 3, y + 6);
 
-  // ================= INVOICE DETAILS =================
-  y += 16;
-  doc.setTextColor(20, 20, 30);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
-  doc.text('Invoice Details', M, y);
-  y += 5;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-
-  const detailRows: [string, string][] = [
-    ['Invoice No.', `#${invoiceNo}`],
-    ['Date', fmtDate(today.toISOString())],
-    ['Due Date', fmtDate(dueDate.toISOString())],
-    ['Currency', 'INR (₹)'],
-    ['GST No.', '36XXXXX0000X1ZX'],
+  const metaItems = [
+    { label: '', value: period },
+    { label: 'Driver:', value: driver },
+    { label: 'Vehicle:', value: vehicle },
+    { label: 'Status:', value: 'Due' },
   ];
-  autoTable(doc, {
-    startY: y,
-    body: detailRows,
-    theme: 'plain',
-    styles: { fontSize: 9, cellPadding: 1.5 },
-    columnStyles: { 0: { textColor: [110, 110, 130], cellWidth: 40 }, 1: { fontStyle: 'bold' } },
-    margin: { left: M },
-    tableWidth: 80,
+  let mx = M;
+  metaItems.forEach((m, i) => {
+    if (i > 0) {
+      doc.setDrawColor(...line);
+      doc.line(mx, y - 4, mx, y + 1);
+      mx += 4;
+    }
+    if (m.label) {
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(...muted);
+      doc.text(m.label, mx, y);
+      const lw = doc.getTextWidth(m.label) + 1.5;
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(...ink);
+      doc.text(m.value, mx + lw, y);
+      mx += lw + doc.getTextWidth(m.value) + 6;
+    } else {
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(...ink);
+      doc.text(m.value, mx, y);
+      mx += doc.getTextWidth(m.value) + 6;
+    }
   });
 
-  // ================= STAT CARDS =================
+  doc.line(M, y + 3, W - M, y + 3);
+
+  // ================= INVOICE DETAILS + STAT CARDS =================
+  y += 11;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...muted);
+  doc.text('INVOICE DETAILS', M, y);
+
+  // Stat card labels
   const totals = rows.reduce(
     (a, r) => ({
       hours: a.hours + Number(r.total_hours),
@@ -122,99 +142,127 @@ export function generateInvoicePDF(rows: EntryRow[], opts?: { from?: string; to?
     { hours: 0, km: 0, extraHrs: 0, extraKm: 0, amount: 0 }
   );
 
-  const cardsY = y;
-  const cardW = 38, cardH = 28, gap = 4;
-  const cardsX = W - M - (cardW * 2 + gap);
   const cards = [
-    { label: 'Total Hrs', value: totals.hours.toString(), sub: 'hours driven' },
-    { label: 'Total KM', value: totals.km.toString(), sub: 'km covered' },
-    { label: 'Extra Hrs', value: totals.extraHrs.toString(), sub: 'overtime hrs' },
-    { label: 'Extra KM', value: totals.extraKm.toString(), sub: 'additional km' },
+    { label: 'TOTAL HRS', value: String(Math.round(totals.hours)), sub: 'hours driven' },
+    { label: 'TOTAL KM', value: String(Math.round(totals.km)), sub: 'km covered' },
+    { label: 'EXTRA HRS', value: String(Math.round(totals.extraHrs)), sub: 'overtime hrs' },
+    { label: 'EXTRA KM', value: String(Math.round(totals.extraKm)), sub: 'additional km' },
   ];
+  const cardsAreaX = M + 70;
+  const cardsAreaW = W - M - cardsAreaX;
+  const cardW = cardsAreaW / 4;
   cards.forEach((c, i) => {
-    const cx = cardsX + (i % 2) * (cardW + gap);
-    const cy = cardsY + Math.floor(i / 2) * (cardH + gap);
-    doc.setFillColor(245, 247, 255);
-    doc.roundedRect(cx, cy, cardW, cardH, 2, 2, 'F');
-    doc.setFontSize(7); doc.setTextColor(110, 110, 130);
-    doc.text(c.label.toUpperCase(), cx + 3, cy + 5);
-    doc.setFontSize(16); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
-    doc.text(c.value, cx + 3, cy + 15);
-    doc.setFontSize(7); doc.setTextColor(140, 140, 155); doc.setFont('helvetica', 'normal');
-    doc.text(c.sub, cx + 3, cy + 22);
+    const cx = cardsAreaX + i * cardW;
+    doc.setFontSize(7); doc.setTextColor(...muted); doc.setFont('helvetica', 'normal');
+    doc.text(c.label, cx, y);
   });
 
-  // ================= SERVICE DETAILS TABLE =================
-  let tableStartY = Math.max((doc as any).lastAutoTable?.finalY ?? y, cardsY + cardH * 2 + gap) + 8;
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(20, 20, 30);
-  doc.text('Service Details', M, tableStartY);
-  tableStartY += 3;
+  // Detail rows
+  y += 4;
+  const detailRows: [string, string][] = [
+    ['Invoice No.', `#${invoiceNo}`],
+    ['Date', fmtDate(today.toISOString())],
+    ['Due Date', fmtDate(dueDate.toISOString())],
+    ['Currency', 'INR'],
+    ['GST No.', '36XXXXX0000X1ZX'],
+  ];
+  doc.setFontSize(8);
+  detailRows.forEach((r, i) => {
+    const ry = y + i * 5;
+    doc.setTextColor(...muted); doc.setFont('helvetica', 'normal');
+    doc.text(r[0], M, ry);
+    doc.setTextColor(...ink); doc.setFont('helvetica', 'bold');
+    doc.text(r[1], M + 28, ry);
+  });
+
+  // Big stat values
+  cards.forEach((c, i) => {
+    const cx = cardsAreaX + i * cardW;
+    doc.setFontSize(20); doc.setTextColor(...ink); doc.setFont('helvetica', 'bold');
+    doc.text(c.value, cx, y + 6);
+    doc.setFontSize(7); doc.setTextColor(...muted); doc.setFont('helvetica', 'normal');
+    doc.text(c.sub, cx, y + 12);
+  });
+
+  y += 30;
+  doc.setDrawColor(...line); doc.line(M, y, W - M, y);
+
+  // ================= SERVICE DETAILS =================
+  y += 6;
+  doc.setFontSize(7); doc.setTextColor(...muted); doc.setFont('helvetica', 'normal');
+  doc.text('SERVICE DETAILS', M, y);
+  y += 3;
 
   autoTable(doc, {
-    startY: tableStartY,
-    head: [['Date', 'Driver', 'Vehicle', 'Package', 'Total Hrs', 'Total KM', 'Extra Hrs', 'Extra KM', 'Amount']],
+    startY: y,
+    head: [['DATE', 'DRIVER', 'VEHICLE', 'PACKAGE', 'TOTAL HRS', 'TOTAL KM', 'EXTRA HRS', 'EXTRA KM', 'AMOUNT']],
     body: rows.map((r) => [
       r.logistics_date,
       r.driver_name,
       r.vehicle_number,
       PACKAGES[r.package_hours_id]?.label ?? '',
-      `${r.total_hours} hrs`,
-      `${r.total_km} km`,
-      `${r.extra_hours} hr`,
-      `${r.extra_km} km`,
-      fmtINR2(Number(r.total_amount)),
+      `${Number(r.total_hours)}\nhrs`,
+      `${Number(r.total_km)}\nkm`,
+      `${Number(r.extra_hours)}\nhr`,
+      `${Number(r.extra_km)}\nkm`,
+      fmtINR2(Number(r.total_amount)).replace('.00', ''),
     ]),
-    headStyles: { fillColor: [79, 70, 229], textColor: 255, fontStyle: 'bold', fontSize: 8 },
-    styles: { fontSize: 8, cellPadding: 2.5 },
-    alternateRowStyles: { fillColor: [248, 250, 255] },
+    headStyles: { fillColor: dark, textColor: 255, fontStyle: 'bold', fontSize: 7, cellPadding: 3 },
+    styles: { fontSize: 8, cellPadding: 3, textColor: ink, lineColor: line, lineWidth: 0.1 },
     columnStyles: { 8: { halign: 'right', fontStyle: 'bold' } },
     margin: { left: M, right: M },
+    theme: 'grid',
   });
 
   // ================= NOTES + SUMMARY =================
-  let endY = (doc as any).lastAutoTable.finalY + 10;
-  const colW = (W - 2 * M - 6) / 2;
+  let endY = (doc as any).lastAutoTable.finalY + 8;
+  const colW = (W - 2 * M - 8) / 2;
 
-  // Notes box
-  doc.setFillColor(248, 250, 255);
-  doc.roundedRect(M, endY, colW, 36, 2, 2, 'F');
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(20, 20, 30);
-  doc.text('Notes & Payment Info', M + 4, endY + 6);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(80, 80, 100);
-  doc.text('Payment Terms: Payment due within 30 days of invoice date.', M + 4, endY + 14);
-  doc.text('Bank Name: XXXX Bank  ·  Branch: Hyderabad', M + 4, endY + 22);
+  // Notes (left, plain)
+  doc.setFontSize(7); doc.setTextColor(...muted); doc.setFont('helvetica', 'normal');
+  doc.text('NOTES & PAYMENT INFO', M, endY);
+  doc.setFontSize(8); doc.setTextColor(...ink);
+  doc.setFont('helvetica', 'bold'); doc.text('Payment Terms:', M, endY + 6);
+  doc.setFont('helvetica', 'normal'); doc.text('Payment due within 30 days of invoice date.', M + 26, endY + 6);
+  doc.setFont('helvetica', 'bold'); doc.text('Bank Name:', M, endY + 12);
+  doc.setFont('helvetica', 'normal'); doc.text('XXXX Bank', M + 20, endY + 12);
+  doc.setFont('helvetica', 'bold'); doc.text('Branch:', M + 42, endY + 12);
+  doc.setFont('helvetica', 'normal'); doc.text('Hyderabad', M + 53, endY + 12);
 
-  // Summary box
-  const sx = M + colW + 6;
-  doc.setFillColor(248, 250, 255);
-  doc.roundedRect(sx, endY, colW, 36, 2, 2, 'F');
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(20, 20, 30);
-  doc.text('Summary', sx + 4, endY + 6);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(80, 80, 100);
+  // Summary (right)
+  const sx = M + colW + 8;
+  doc.setFontSize(7); doc.setTextColor(...muted); doc.setFont('helvetica', 'normal');
+  doc.text('SUMMARY', sx, endY);
+  doc.setFontSize(9); doc.setTextColor(...ink);
   const sLines: [string, string][] = [
     ['Subtotal', fmtINR2(totals.amount)],
     ['GST (0%)', fmtINR2(0)],
     ['Discount', fmtINR2(0)],
   ];
   sLines.forEach((l, i) => {
-    doc.text(l[0], sx + 4, endY + 14 + i * 7);
-    doc.text(l[1], sx + colW - 4, endY + 14 + i * 7, { align: 'right' });
+    const ly = endY + 6 + i * 6;
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(...muted);
+    doc.text(l[0], sx, ly);
+    doc.setFont('helvetica', 'bold'); doc.setTextColor(...ink);
+    doc.text(l[1], W - M, ly, { align: 'right' });
   });
 
-  // ================= GRAND TOTAL =================
-  endY += 42;
-  doc.setFillColor(79, 70, 229);
-  doc.roundedRect(M, endY, W - 2 * M, 14, 2, 2, 'F');
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(255);
-  doc.text('Grand Total', M + 5, endY + 9);
+  // ================= GRAND TOTAL (dark bar) =================
+  endY += 26;
+  doc.setFillColor(...dark);
+  doc.rect(M, endY, W - 2 * M, 14, 'F');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(255);
+  doc.text('GRAND TOTAL', M + 5, endY + 9);
   doc.setFontSize(14);
   doc.text(fmtINR2(totals.amount), W - M - 5, endY + 9, { align: 'right' });
 
   // ================= FOOTER =================
   endY += 22;
-  doc.setTextColor(120, 120, 140); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
-  doc.text('Thank you for your business — OneHmt Logistics', W / 2, endY, { align: 'center' });
-  doc.text('onehmt.com  ·  contact@onehmt.com', W / 2, endY + 5, { align: 'center' });
+  doc.setFillColor(...soft);
+  doc.rect(0, endY - 4, W, 12, 'F');
+  doc.setTextColor(...muted); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+  doc.text('Thank you for your business — OneHmt Logistics', M, endY + 3);
+  doc.text('onehmt.com  ·  contact@onehmt.com', W - M, endY + 3, { align: 'right' });
 
   doc.save(`${invoiceNo}_OneHmt.pdf`);
 }
