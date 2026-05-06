@@ -22,8 +22,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/admin" element={<Dashboard adminMode />} />
+            <Route path="/dashboard" element={<Dashboard mode="admin" />} />
+            <Route path="/admin" element={<Dashboard mode="admin" />} />
+            <Route path="/my" element={<Dashboard mode="user" />} />
             <Route path="/entry" element={<EntryForm />} />
             <Route path="/entry/:id" element={<EntryForm />} />
             <Route path="*" element={<NotFound />} />
