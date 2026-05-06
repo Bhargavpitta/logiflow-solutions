@@ -1,60 +1,21 @@
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, Icosahedron, MeshDistortMaterial, OrbitControls } from '@react-three/drei';
-import { useRef } from 'react';
-import * as THREE from 'three';
-
-function Orb() {
-  const ref = useRef<THREE.Mesh>(null);
-  useFrame((_s, d) => {
-    if (ref.current) {
-      ref.current.rotation.y += d * 0.25;
-      ref.current.rotation.x += d * 0.1;
-    }
-  });
-  return (
-    <Float speed={1.4} rotationIntensity={0.6} floatIntensity={1.2}>
-      <Icosahedron ref={ref} args={[1.6, 4]}>
-        <MeshDistortMaterial
-          color="#6366f1"
-          emissive="#4f46e5"
-          emissiveIntensity={0.4}
-          distort={0.45}
-          speed={2}
-          roughness={0.15}
-          metalness={0.85}
-        />
-      </Icosahedron>
-    </Float>
-  );
-}
-
-function Particles() {
-  const ref = useRef<THREE.Points>(null);
-  const count = 400;
-  const positions = new Float32Array(count * 3);
-  for (let i = 0; i < count; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 12;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 12;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 12;
-  }
-  useFrame((_s, d) => { if (ref.current) ref.current.rotation.y += d * 0.05; });
-  return (
-    <points ref={ref}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-      </bufferGeometry>
-      <pointsMaterial size={0.03} color="#a5b4fc" transparent opacity={0.7} />
-    </points>
-  );
-}
+import innovaHero from '@/assets/innova-hero.jpg';
 
 export const HeroScene = () => (
-  <Canvas camera={{ position: [0, 0, 5], fov: 45 }} dpr={[1, 2]}>
-    <ambientLight intensity={0.4} />
-    <directionalLight position={[5, 5, 5]} intensity={1.5} color="#a5b4fc" />
-    <pointLight position={[-5, -3, 2]} intensity={2} color="#22d3a5" />
-    <Orb />
-    <Particles />
-    <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.6} />
-  </Canvas>
+  <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+    {/* Ambient gradient stage */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,hsl(var(--primary)/0.35),transparent_70%)]" />
+    <div className="absolute inset-x-0 bottom-10 h-6 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.5),transparent_70%)] blur-2xl animate-pulse-glow" />
+
+    {/* Car with floating + subtle tilt animation */}
+    <div className="relative w-[92%] car-float">
+      <div className="car-tilt drop-shadow-[0_25px_40px_hsl(var(--primary)/0.45)]">
+        <img
+          src={innovaHero}
+          alt="Toyota Innova Crysta — premium fleet vehicle"
+          className="w-full h-auto object-contain select-none pointer-events-none"
+          draggable={false}
+        />
+      </div>
+    </div>
+  </div>
 );
