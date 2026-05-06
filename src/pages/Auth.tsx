@@ -86,12 +86,6 @@ const Auth = () => {
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
 
-            
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-              <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">OR</span></div>
-            </div>
-
             <form onSubmit={handle} className="space-y-4">
               <TabsContent value="signup" className="m-0 space-y-4">
                 <div className="space-y-2">
@@ -114,6 +108,10 @@ const Auth = () => {
                 {loading ? 'Processing…' : tab === 'signin' ? 'Sign In' : 'Create Account'}
                 <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
+              <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+              <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">OR</span></div>
+            </div>
               <Button
               type="button"
               variant="outline"
