@@ -1,0 +1,41 @@
+<svg width="1200" height="700" viewBox="0 0 1200 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" rx="36" fill="#FFF1EE"/>
+  <rect x="42" y="42" width="1116" height="616" rx="28" fill="url(#bg)"/>
+  <ellipse cx="396" cy="584" rx="150" ry="26" fill="#D7ABA5" fill-opacity="0.32"/>
+  <ellipse cx="852" cy="584" rx="150" ry="26" fill="#D7ABA5" fill-opacity="0.32"/>
+  <path d="M245 464L330 349C361 307 407 282 456 282H731C770 282 809 296 841 321L967 419C987 434 999 459 999 486V504H245V464Z" fill="#F0DCD9"/>
+  <path d="M289 458L364 366C387 338 422 322 458 322H719C752 322 784 333 810 355L907 433H289V458Z" fill="url(#body)"/>
+  <path d="M421 339H700C733 339 766 349 794 368L845 404H372L395 373C401 364 411 339 421 339Z" fill="#8A4946" fill-opacity="0.34"/>
+  <path d="M463 336L402 404H544V336H463Z" fill="#FFF4F2" fill-opacity="0.92"/>
+  <path d="M555 336V404H703V336H555Z" fill="#FFF4F2" fill-opacity="0.92"/>
+  <path d="M714 339V404H837L790 369C764 349 732 339 714 339Z" fill="#FFF4F2" fill-opacity="0.92"/>
+  <rect x="341" y="436" width="562" height="76" rx="24" fill="url(#lower)"/>
+  <rect x="332" y="420" width="176" height="44" rx="14" fill="#5C1F23"/>
+  <rect x="691" y="420" width="184" height="44" rx="14" fill="#5C1F23"/>
+  <circle cx="411" cy="534" r="74" fill="#202733"/>
+  <circle cx="411" cy="534" r="42" fill="#ECE3E3"/>
+  <circle cx="843" cy="534" r="74" fill="#202733"/>
+  <circle cx="843" cy="534" r="42" fill="#ECE3E3"/>
+  <rect x="236" y="456" width="82" height="26" rx="13" fill="#FFCF67"/>
+  <rect x="938" y="456" width="46" height="18" rx="9" fill="#FF7368"/>
+  <rect x="940" y="478" width="32" height="8" rx="4" fill="#FFC3BE"/>
+  <rect x="477" y="451" width="226" height="18" rx="9" fill="#341215" fill-opacity="0.92"/>
+  <text x="590" y="463" text-anchor="middle" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="3">TOURING SPORT</text>
+  <text x="86" y="116" fill="#571C20" font-family="Arial, sans-serif" font-size="56" font-weight="700">Innova Crysta Touring Sport</text>
+  <text x="86" y="160" fill="#885457" font-family="Arial, sans-serif" font-size="26">Distinctive premium trim for long-haul teams and elevated travel duty.</text>
+  <defs>
+    <linearGradient id="bg" x1="94" y1="90" x2="1045" y2="595" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8F6"/>
+      <stop offset="1" stop-color="#F7E4E0"/>
+    </linearGradient>
+    <linearGradient id="body" x1="324" y1="322" x2="902" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7A2930"/>
+      <stop offset="0.5" stop-color="#A03A42"/>
+      <stop offset="1" stop-color="#5D1E24"/>
+    </linearGradient>
+    <linearGradient id="lower" x1="341" y1="436" x2="903" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#672126"/>
+      <stop offset="1" stop-color="#451519"/>
+    </linearGradient>
+  </defs>
+</svg>

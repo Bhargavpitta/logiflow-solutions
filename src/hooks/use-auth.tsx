@@ -1,37 +1,55 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { Session, User } from '@supabase/supabase-js';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { apiFetch, type AppUser } from "@/lib/api";
 
-export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<'admin' | 'user' | null>(null);
+type AuthContextValue = {
+  user: AppUser | null;
+  role: "admin" | "user" | null;
+  loading: boolean;
+  isAdmin: boolean;
+  refreshAuth: () => Promise<void>;
+  setUser: (user: AppUser | null) => void;
+};
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        setTimeout(() => fetchRole(s.user.id), 0);
-      } else {
-        setRole(null);
-      }
-    });
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) fetchRole(s.user.id);
+  const refreshAuth = async () => {
+    try {
+      const data = await apiFetch<{ user: AppUser }>("/auth/me");
+      setUser(data.user);
+    } catch {
+      setUser(null);
+    } finally {
       setLoading(false);
-    });
-    return () => sub.subscription.unsubscribe();
+    }
+  };
+
+  useEffect(() => {
+    refreshAuth();
   }, []);
 
-  async function fetchRole(uid: string) {
-    const { data } = await supabase.from('user_roles').select('role').eq('user_id', uid);
-    if (data?.some(r => r.role === 'admin')) setRole('admin');
-    else setRole('user');
-  }
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      role: user?.role ?? null,
+      loading,
+      isAdmin: user?.role === "admin",
+      refreshAuth,
+      setUser,
+    }),
+    [user, loading],
+  );
 
-  return { session, user, role, loading, isAdmin: role === 'admin' };
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider.");
+  }
+  return context;
 }
