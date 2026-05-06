@@ -3,7 +3,7 @@ import { ArrowRight, BarChart3, FileSpreadsheet, Gauge, Lock, MapPin, Receipt } 
 import { Button } from '@/components/ui/button';
 import { TopNav } from '@/components/TopNav';
 import { HeroScene } from '@/components/HeroScene';
-import innovaHero from '@/assets/innova-hero.jpg';
+
 
 const Index = () => {
   return (
