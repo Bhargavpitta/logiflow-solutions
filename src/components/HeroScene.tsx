@@ -23,7 +23,7 @@ export const HeroScene = () => {
   }, []);
 
   return (
-    <div className="relative h-[560px] w-full overflow-hidden sm:h-[620px] lg:h-[660px]">
+    <div className="absolute inset-0 h-full w-full overflow-hidden">
       <div
         className="flex h-full w-full transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]"
         style={{ transform: `translateX(-${activeIndex * 100}%)` }}
