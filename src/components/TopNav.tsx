@@ -26,7 +26,7 @@ export const TopNav = () => {
 
   const initial = (user?.name || user?.email || "?").charAt(0).toUpperCase();
   const displayName = user?.name || user?.email?.split("@")[0];
-  const avatarUrl = user?.avatar_url;
+  const avatarUrl = user?.avatar_url && user.avatar_url.trim() ? user.avatar_url : null;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl">
@@ -70,14 +70,14 @@ export const TopNav = () => {
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Account" className="h-full w-full object-cover" />
                   ) : (
-                    initial
+                    <UserIcon className="h-5 w-5 text-muted-foreground" />
                   )}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-72 overflow-hidden p-0">
                 <div className="flex flex-col items-center bg-accent/40 px-5 pb-4 pt-5 text-center">
                   <div className="mb-2 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-primary/12 text-xl font-semibold text-primary">
-                    {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : initial}
+                    {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : <UserIcon className="h-7 w-7" />}
                   </div>
                   <div className="text-sm font-semibold">Hi, {displayName}</div>
                   <div className="mt-0.5 max-w-full truncate text-xs text-muted-foreground">{user.email}</div>
