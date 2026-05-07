@@ -92,13 +92,13 @@ const Index = () => {
                     asChild
                     variant="outline"
                     size="lg"
-                    className="h-12 rounded-full border-white/20 bg-white/10 px-6 text-white backdrop-blur hover:bg-white/16 hover:text-white"
+                    className="hidden h-12 rounded-full border-white/20 bg-white/10 px-6 text-white backdrop-blur hover:bg-white/16 hover:text-white sm:inline-flex"
                   >
                     <Link to="/auth">Request a walkthrough</Link>
                   </Button>
                 </div>
 
-                <div className="mt-6 flex flex-wrap gap-3 text-xs font-medium uppercase tracking-[0.18em] text-white/88">
+                <div className="mt-6 hidden flex-wrap gap-3 text-xs font-medium uppercase tracking-[0.18em] text-white/88 sm:flex">
                   <span className="rounded-full border border-white/14 bg-white/8 px-3 py-1.5 backdrop-blur">
                     4 Innova variants
                   </span>
