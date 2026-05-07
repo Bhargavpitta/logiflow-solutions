@@ -92,7 +92,7 @@ const Auth = () => {
       <TopNav />
       <div className="container py-8 lg:py-12">
         <div className="grid gap-8 lg:grid-cols-[1fr_480px]">
-          <section className="section-shell relative overflow-hidden">
+          <section className="section-shell relative hidden overflow-hidden lg:block">
             <div className="hero-shape left-8 top-8 h-28 w-28 bg-orange-200/60 dark:bg-orange-500/20" />
             <div className="hero-shape bottom-12 right-10 h-24 w-24 bg-emerald-200/60 dark:bg-emerald-500/16" />
             <div className="relative space-y-8">
