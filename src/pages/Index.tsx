@@ -62,18 +62,18 @@ const Index = () => {
           <HeroScene />
           <div className="absolute inset-0 z-10 flex items-center">
             <div className="container">
-              <div className="max-w-[340px] px-1 pt-14 text-white sm:max-w-[420px] sm:pt-10 lg:max-w-[520px] lg:pt-0">
-                <div className="mb-5 flex flex-wrap items-center gap-3">
+              <div className="max-w-[340px] px-1 pt-6 text-white sm:max-w-[420px] sm:pt-8 lg:max-w-[520px] lg:pt-0">
+                <div className="mb-4 flex flex-wrap items-center gap-3">
                   <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/95 backdrop-blur">
                     <ShieldCheck className="h-3.5 w-3.5" />
                     OneHmt Logistics Platform
                   </span>
-                  <span className="inline-flex rounded-full border border-white/18 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/90 backdrop-blur">
+                  <span className="hidden rounded-full border border-white/18 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/90 backdrop-blur sm:inline-flex">
                     Innova Crysta Fleet
                   </span>
                 </div>
 
-                <h1 className="max-w-[8ch] text-[3.25rem] font-extrabold leading-[0.94] tracking-[-0.05em] text-white drop-shadow-[0_4px_30px_rgba(0,0,0,0.45)] sm:text-[4.25rem] lg:text-[5.25rem]">
+                <h1 className="max-w-[8ch] text-[2.5rem] font-extrabold leading-[0.95] tracking-[-0.04em] text-white drop-shadow-[0_4px_30px_rgba(0,0,0,0.45)] sm:text-[3.75rem] lg:text-[5.25rem]">
                   Fleet operations, billing, and reporting in one reliable workspace.
                 </h1>
 
