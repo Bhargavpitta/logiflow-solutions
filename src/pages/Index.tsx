@@ -77,12 +77,12 @@ const Index = () => {
                   Fleet operations, billing, and reporting in one reliable workspace.
                 </h1>
 
-                <p className="mt-5 max-w-md text-base leading-7 text-white/95 drop-shadow-[0_2px_18px_rgba(0,0,0,0.35)] sm:max-w-lg sm:text-lg sm:leading-8">
+                <p className="mt-4 max-w-md text-sm leading-6 text-white/95 drop-shadow-[0_2px_18px_rgba(0,0,0,0.35)] sm:mt-5 sm:max-w-lg sm:text-lg sm:leading-8">
                   Replace scattered sheets with a clean logistics workflow for real dispatch teams, billing review,
                   invoice exports, and day-to-day trip visibility.
                 </p>
 
-                <div className="mt-7 flex flex-wrap gap-3">
+                <div className="mt-5 flex flex-wrap gap-3 sm:mt-7">
                   <Button asChild size="lg" className="h-12 rounded-full px-6">
                     <Link to="/auth">
                       Open workspace <ArrowRight className="ml-1 h-4 w-4" />
