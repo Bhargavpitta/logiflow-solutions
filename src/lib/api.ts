@@ -1,4 +1,5 @@
 export const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3001/api").replace(/\/$/, "");
+const hasPlaceholderRenderUrl = /your-backend-service\.onrender\.com/i.test(API_URL);
 
 export interface AppUser {
   id: string;
@@ -53,6 +54,12 @@ export interface EntryPayload {
 }
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  if (hasPlaceholderRenderUrl) {
+    throw new Error(
+      "VITE_API_URL is still using the Render placeholder URL. Set it to your real backend onrender.com/api address and redeploy the frontend.",
+    );
+  }
+
   let response: Response;
   try {
     response = await fetch(`${API_URL}${path}`, {

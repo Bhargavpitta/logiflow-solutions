@@ -13,7 +13,7 @@ services:
       - key: PORT
         value: 10000
       - key: FRONTEND_URL
-        value: https://your-frontend-service.onrender.com
+        sync: false
       - key: ADMIN_EMAIL
         sync: false
       - key: JWT_SECRET
@@ -36,7 +36,7 @@ services:
       - key: NODE_VERSION
         value: 22.22.0
       - key: VITE_API_URL
-        value: https://your-backend-service.onrender.com/api
+        sync: false
       - key: VITE_GOOGLE_CLIENT_ID
         sync: false
 

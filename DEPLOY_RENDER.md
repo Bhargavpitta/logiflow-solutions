@@ -69,6 +69,10 @@ After creation, note these two URLs:
 - backend URL:
   `https://<your-backend-name>.onrender.com`
 
+Important:
+Do not keep the placeholder values from `render.yaml` such as `https://your-backend-service.onrender.com/api` or `https://your-frontend-service.onrender.com`.
+Those are examples only. If they remain in Render, the frontend will call the placeholder domain and login will fail with CORS errors and `Failed to fetch`.
+
 ### Step 5: Update the frontend environment variable
 
 Open the `logiflow-frontend` service in Render.
