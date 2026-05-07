@@ -56,6 +56,8 @@ Render will create:
 - one Node web service
 - one static site
 
+Note: in `render.yaml`, the frontend static site does not use `plan: free`. Render static sites are free, but Blueprint validation can reject `plan: free` for a static service.
+
 The first deploy may finish with the app loading but auth/API calls not fully working until you replace the placeholder URLs below.
 
 ### Step 4: Copy the real service URLs from Render
