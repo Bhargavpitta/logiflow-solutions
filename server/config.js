@@ -3,9 +3,23 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const generatedSecret = "onehmt-logistics-jwt-2026-05-06-9f6db7d4c3a8e21b5c";
+
+function normalizeOrigin(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  try {
+    return new URL(trimmed).origin;
+  } catch {
+    return trimmed.replace(/\/+$/, "");
+  }
+}
+
 const frontendUrls = (process.env.FRONTEND_URL || "http://localhost:8080")
   .split(",")
-  .map((value) => value.trim())
+  .map((value) => normalizeOrigin(value))
   .filter(Boolean);
 const isProduction = process.env.NODE_ENV === "production";
 

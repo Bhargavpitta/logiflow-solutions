@@ -53,14 +53,21 @@ export interface EntryPayload {
 }
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
-    ...init,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers || {}),
+      },
+      ...init,
+    });
+  } catch (error) {
+    throw new Error(
+      `Unable to reach the API at ${API_URL}. Check VITE_API_URL, backend health, and FRONTEND_URL CORS settings.`,
+    );
+  }
 
   if (!response.ok) {
     let message = "Request failed.";
@@ -79,4 +86,3 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 
   return response.json() as Promise<T>;
 }
-
