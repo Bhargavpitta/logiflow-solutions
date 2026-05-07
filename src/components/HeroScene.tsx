@@ -40,11 +40,15 @@ export const HeroScene = () => {
         ))}
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-950/92 via-slate-950/62 to-slate-950/12 dark:from-black/92 dark:via-black/62 dark:to-black/12" />
-      <div className="absolute inset-y-0 left-0 w-[62%] bg-gradient-to-r from-slate-950/46 via-slate-950/24 to-transparent dark:from-black/55 dark:via-black/28 dark:to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/32 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-slate-950/35" />
+      <div className="absolute inset-y-0 left-0 w-[70%] bg-gradient-to-r from-slate-950/70 via-slate-950/40 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
 
-      <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 gap-2">
+      <div className="absolute right-5 top-5 z-20 rounded-full border border-white/25 bg-black/55 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-white backdrop-blur sm:right-8 sm:top-8 sm:px-5 sm:py-2 sm:text-sm">
+        Innova Crysta · {slides[activeIndex].trim}
+      </div>
+
+      <div className="absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 gap-2">
         {slides.map((slide, index) => (
           <button
             key={slide.trim}
