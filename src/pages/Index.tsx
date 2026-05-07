@@ -58,11 +58,11 @@ const Index = () => {
       <TopNav />
 
       <section className="relative overflow-hidden">
-        <div className="relative">
+        <div className="relative min-h-[640px] sm:min-h-[680px] lg:min-h-[720px]">
           <HeroScene />
-          <div className="absolute inset-0 z-10 flex items-center">
-            <div className="container">
-              <div className="max-w-[340px] px-1 pt-6 text-white sm:max-w-[420px] sm:pt-8 lg:max-w-[520px] lg:pt-0">
+          <div className="relative z-10 flex min-h-[640px] items-center sm:min-h-[680px] lg:min-h-[720px]">
+            <div className="container py-10 sm:py-14 lg:py-16">
+              <div className="max-w-[340px] px-1 text-white sm:max-w-[420px] lg:max-w-[520px]">
                 <div className="mb-4 flex flex-wrap items-center gap-3">
                   <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/95 backdrop-blur">
                     <ShieldCheck className="h-3.5 w-3.5" />
