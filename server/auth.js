@@ -42,8 +42,8 @@ export function verifySession(token) {
 export function setSessionCookie(res, token) {
   res.cookie(config.sessionCookieName, token, {
     httpOnly: true,
-    sameSite: "lax",
-    secure: false,
+    sameSite: config.sessionCookieSameSite,
+    secure: config.sessionCookieSecure,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   });
@@ -52,9 +52,8 @@ export function setSessionCookie(res, token) {
 export function clearSessionCookie(res) {
   res.clearCookie(config.sessionCookieName, {
     httpOnly: true,
-    sameSite: "lax",
-    secure: false,
+    sameSite: config.sessionCookieSameSite,
+    secure: config.sessionCookieSecure,
     path: "/",
   });
 }
-
