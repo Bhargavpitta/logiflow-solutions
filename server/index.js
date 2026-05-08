@@ -499,6 +499,268 @@ app.delete("/api/entries/:id", authMiddleware, requireAdmin, async (req, res, ne
   }
 });
 
+/* ============== ADMIN: Vehicles / Agencies / Events / EMC ============== */
+
+const vehicleSchema = z.object({
+  owner_name: z.string().trim().min(1).max(120),
+  owner_number: z.string().trim().max(20).nullable().optional(),
+  vehicle_name: z.string().trim().max(80).optional(),
+  vehicle_number: z.string().trim().min(1).max(40),
+  vehicle_model: z.string().trim().max(80).optional(),
+  ownership: z.enum(["own", "rent", "agency"]),
+  agency_id: z.string().uuid().nullable().optional(),
+  agency: z
+    .object({
+      agency_name: z.string().trim().min(1).max(120),
+      organizer_name: z.string().trim().max(120).nullable().optional(),
+      organizer_number: z.string().trim().max(20).nullable().optional(),
+      alt_number: z.string().trim().max(20).nullable().optional(),
+    })
+    .optional(),
+});
+
+const agencySchema = z.object({
+  agency_name: z.string().trim().min(1).max(120),
+  organizer_name: z.string().trim().max(120).nullable().optional(),
+  organizer_number: z.string().trim().max(20).nullable().optional(),
+  alt_number: z.string().trim().max(20).nullable().optional(),
+});
+
+const emcSchema = z.object({
+  company_name: z.string().trim().min(1).max(160),
+  organizer_name: z.string().trim().max(120).nullable().optional(),
+  mobile: z.string().trim().max(20).nullable().optional(),
+  alt_mobile: z.string().trim().max(20).nullable().optional(),
+  email: z.string().trim().email().max(255).nullable().optional(),
+  status: z.enum(["active", "pending", "inactive"]).optional(),
+});
+
+const eventSchema = z.object({
+  name: z.string().trim().min(1).max(160),
+  from_date: z.string().min(1),
+  to_date: z.string().min(1),
+  organizer_name: z.string().trim().max(120).nullable().optional(),
+  organizer_number: z.string().trim().max(20).nullable().optional(),
+  status: z.enum(["pending", "active", "completed", "cancelled"]).optional(),
+  vehicles: z
+    .array(
+      z.object({
+        vehicle_id: z.string().uuid(),
+        day_date: z.string().min(1),
+        start_time: z.string().nullable().optional(),
+        end_time: z.string().nullable().optional(),
+      }),
+    )
+    .optional(),
+});
+
+// Vehicles list (any authed user can see)
+app.get("/api/vehicles", authMiddleware, async (req, res, next) => {
+  try {
+    const r = await query(
+      `SELECT v.*, a.agency_name FROM public.vehicles v
+       LEFT JOIN public.agencies a ON a.id = v.agency_id
+       ORDER BY v.created_at DESC`,
+    );
+    res.json({ vehicles: r.rows });
+  } catch (e) { next(e); }
+});
+
+app.post("/api/vehicles", authMiddleware, requireAdmin, async (req, res, next) => {
+  try {
+    const v = vehicleSchema.parse(req.body);
+    const result = await withTransaction(async (client) => {
+      let agencyId = v.agency_id || null;
+      if (v.ownership === "agency" && v.agency && !agencyId) {
+        const ar = await client.query(
+          `INSERT INTO public.agencies (agency_name, organizer_name, organizer_number, alt_number)
+           VALUES ($1,$2,$3,$4) RETURNING id`,
+          [v.agency.agency_name, v.agency.organizer_name || null, v.agency.organizer_number || null, v.agency.alt_number || null],
+        );
+        agencyId = ar.rows[0].id;
+      }
+      const ins = await client.query(
+        `INSERT INTO public.vehicles (owner_name, owner_number, vehicle_name, vehicle_number, vehicle_model, ownership, agency_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+        [v.owner_name, v.owner_number || null, v.vehicle_name || "Innova Crysta", v.vehicle_number, v.vehicle_model || "Innova Crysta", v.ownership, agencyId],
+      );
+      return ins.rows[0];
+    });
+    res.status(201).json({ vehicle: result });
+  } catch (e) { next(e); }
+});
+
+app.put("/api/vehicles/:id", authMiddleware, requireAdmin, async (req, res, next) => {
+  try {
+    const v = vehicleSchema.parse(req.body);
+    const r = await query(
+      `UPDATE public.vehicles SET owner_name=$2, owner_number=$3, vehicle_name=$4, vehicle_number=$5, vehicle_model=$6, ownership=$7, agency_id=$8
+       WHERE id=$1 RETURNING *`,
+      [req.params.id, v.owner_name, v.owner_number || null, v.vehicle_name || "Innova Crysta", v.vehicle_number, v.vehicle_model || "Innova Crysta", v.ownership, v.agency_id || null],
+    );
+    if (!r.rows[0]) return res.status(404).json({ error: "Vehicle not found." });
+    res.json({ vehicle: r.rows[0] });
+  } catch (e) { next(e); }
+});
+
+app.delete("/api/vehicles/:id", authMiddleware, requireAdmin, async (req, res, next) => {
+  try {
+    await query("DELETE FROM public.vehicles WHERE id=$1", [req.params.id]);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// Agencies
+app.get("/api/agencies", authMiddleware, requireAdmin, async (_req, res, next) => {
+  try {
+    const r = await query(`SELECT * FROM public.agencies ORDER BY agency_name`);
+    res.json({ agencies: r.rows });
+  } catch (e) { next(e); }
+});
+
+app.post("/api/agencies", authMiddleware, requireAdmin, async (req, res, next) => {
+  try {
+    const a = agencySchema.parse(req.body);
+    const r = await query(
+      `INSERT INTO public.agencies (agency_name, organizer_name, organizer_number, alt_number)
+       VALUES ($1,$2,$3,$4) RETURNING *`,
+      [a.agency_name, a.organizer_name || null, a.organizer_number || null, a.alt_number || null],
+    );
+    res.status(201).json({ agency: r.rows[0] });
+  } catch (e) { next(e); }
+});
+
+// EMC
+app.get("/api/emc", authMiddleware, requireAdmin, async (_req, res, next) => {
+  try {
+    const r = await query(`SELECT * FROM public.event_management_companies ORDER BY created_at DESC`);
+    res.json({ companies: r.rows });
+  } catch (e) { next(e); }
+});
+
+app.post("/api/emc", authMiddleware, requireAdmin, async (req, res, next) => {
+  try {
+    const c = emcSchema.parse(req.body);
+    const r = await query(
+      `INSERT INTO public.event_management_companies (company_name, organizer_name, mobile, alt_mobile, email, status)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+      [c.company_name, c.organizer_name || null, c.mobile || null, c.alt_mobile || null, c.email || null, c.status || "active"],
+    );
+    res.status(201).json({ company: r.rows[0] });
+  } catch (e) { next(e); }
+});
+
+app.put("/api/emc/:id", authMiddleware, requireAdmin, async (req, res, next) => {
+  try {
+    const c = emcSchema.parse(req.body);
+    const r = await query(
+      `UPDATE public.event_management_companies
+       SET company_name=$2, organizer_name=$3, mobile=$4, alt_mobile=$5, email=$6, status=$7
+       WHERE id=$1 RETURNING *`,
+      [req.params.id, c.company_name, c.organizer_name || null, c.mobile || null, c.alt_mobile || null, c.email || null, c.status || "active"],
+    );
+    if (!r.rows[0]) return res.status(404).json({ error: "Company not found." });
+    res.json({ company: r.rows[0] });
+  } catch (e) { next(e); }
+});
+
+app.delete("/api/emc/:id", authMiddleware, requireAdmin, async (req, res, next) => {
+  try {
+    await query(`DELETE FROM public.event_management_companies WHERE id=$1`, [req.params.id]);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// Events
+app.get("/api/events", authMiddleware, requireAdmin, async (_req, res, next) => {
+  try {
+    const ev = await query(`SELECT * FROM public.events ORDER BY from_date DESC`);
+    const evs = await query(
+      `SELECT ev.*, v.vehicle_number, v.vehicle_model, v.owner_name, v.ownership
+       FROM public.event_vehicles ev
+       JOIN public.vehicles v ON v.id = ev.vehicle_id`,
+    );
+    const byEvent = {};
+    for (const r of evs.rows) {
+      (byEvent[r.event_id] ||= []).push(r);
+    }
+    res.json({
+      events: ev.rows.map((e) => ({ ...e, vehicles: byEvent[e.id] || [] })),
+    });
+  } catch (e) { next(e); }
+});
+
+app.post("/api/events", authMiddleware, requireAdmin, async (req, res, next) => {
+  try {
+    const e = eventSchema.parse(req.body);
+    const result = await withTransaction(async (client) => {
+      const ins = await client.query(
+        `INSERT INTO public.events (name, from_date, to_date, organizer_name, organizer_number, status, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+        [e.name, e.from_date, e.to_date, e.organizer_name || null, e.organizer_number || null, e.status || "pending", req.user.id],
+      );
+      const eventRow = ins.rows[0];
+      if (e.vehicles?.length) {
+        for (const ev of e.vehicles) {
+          await client.query(
+            `INSERT INTO public.event_vehicles (event_id, vehicle_id, day_date, start_time, end_time)
+             VALUES ($1,$2,$3,$4,$5)`,
+            [eventRow.id, ev.vehicle_id, ev.day_date, ev.start_time || null, ev.end_time || null],
+          );
+        }
+      }
+      return eventRow;
+    });
+    res.status(201).json({ event: result });
+  } catch (e) { next(e); }
+});
+
+app.put("/api/events/:id", authMiddleware, requireAdmin, async (req, res, next) => {
+  try {
+    const e = eventSchema.parse(req.body);
+    const result = await withTransaction(async (client) => {
+      const ev = await client.query(
+        `UPDATE public.events SET name=$2, from_date=$3, to_date=$4, organizer_name=$5, organizer_number=$6, status=$7
+         WHERE id=$1 RETURNING *`,
+        [req.params.id, e.name, e.from_date, e.to_date, e.organizer_name || null, e.organizer_number || null, e.status || "pending"],
+      );
+      if (!ev.rows[0]) return null;
+      if (e.vehicles) {
+        await client.query(`DELETE FROM public.event_vehicles WHERE event_id=$1`, [req.params.id]);
+        for (const v of e.vehicles) {
+          await client.query(
+            `INSERT INTO public.event_vehicles (event_id, vehicle_id, day_date, start_time, end_time)
+             VALUES ($1,$2,$3,$4,$5)`,
+            [req.params.id, v.vehicle_id, v.day_date, v.start_time || null, v.end_time || null],
+          );
+        }
+      }
+      return ev.rows[0];
+    });
+    if (!result) return res.status(404).json({ error: "Event not found." });
+    res.json({ event: result });
+  } catch (e) { next(e); }
+});
+
+app.put("/api/event-vehicles/:id/time", authMiddleware, requireAdmin, async (req, res, next) => {
+  try {
+    const { start_time, end_time } = req.body;
+    const r = await query(
+      `UPDATE public.event_vehicles SET start_time=$2, end_time=$3 WHERE id=$1 RETURNING *`,
+      [req.params.id, start_time || null, end_time || null],
+    );
+    if (!r.rows[0]) return res.status(404).json({ error: "Booking not found." });
+    res.json({ booking: r.rows[0] });
+  } catch (e) { next(e); }
+});
+
+app.delete("/api/events/:id", authMiddleware, requireAdmin, async (req, res, next) => {
+  try {
+    await query(`DELETE FROM public.events WHERE id=$1`, [req.params.id]);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
 app.use((error, _req, res, _next) => {
   if (error instanceof z.ZodError) {
     return res.status(400).json({ error: error.issues[0]?.message || "Invalid request." });
