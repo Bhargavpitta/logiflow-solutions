@@ -58,6 +58,27 @@ export interface EventRow {
   vehicles: EventVehicleBooking[];
 }
 
+export interface DriverTripLog {
+  id: string;
+  source_row: number;
+  driver_name: string;
+  contact_number: string | null;
+  vehicle_number: string;
+  vehicle_type: string;
+  vehicle_model: string;
+  log_date: string;
+  starting_meter: number;
+  closing_meter: number;
+  starting_time: string | null;
+  closing_time: string | null;
+  package_type: string;
+  package_amount: number;
+  extra_hour_rate: number;
+  extra_time_rate: number;
+  ownership_raw: string | null;
+  inferred_ownership: Ownership;
+}
+
 export const adminApi = {
   vehicles: {
     list: () => apiFetch<{ vehicles: Vehicle[] }>("/vehicles").then((r) => r.vehicles),
@@ -92,6 +113,9 @@ export const adminApi = {
         method: "PUT",
         body: JSON.stringify({ start_time, end_time }),
       }),
+  },
+  tripLogs: {
+    list: () => apiFetch<{ tripLogs: DriverTripLog[] }>("/driver-trip-logs").then((r) => r.tripLogs),
   },
 };
 

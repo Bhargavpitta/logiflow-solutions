@@ -690,6 +690,26 @@ app.get("/api/events", authMiddleware, requireAdmin, async (_req, res, next) => 
   } catch (e) { next(e); }
 });
 
+app.get("/api/driver-trip-logs", authMiddleware, requireAdmin, async (_req, res, next) => {
+  try {
+    const result = await query(
+      `
+        SELECT *
+        FROM public.driver_trip_logs
+        ORDER BY log_date DESC, source_row ASC
+      `,
+    );
+    res.json({
+      tripLogs: result.rows.map((row) => ({
+        ...row,
+        package_amount: Number(row.package_amount),
+        extra_hour_rate: Number(row.extra_hour_rate),
+        extra_time_rate: Number(row.extra_time_rate),
+      })),
+    });
+  } catch (e) { next(e); }
+});
+
 app.post("/api/events", authMiddleware, requireAdmin, async (req, res, next) => {
   try {
     const e = eventSchema.parse(req.body);

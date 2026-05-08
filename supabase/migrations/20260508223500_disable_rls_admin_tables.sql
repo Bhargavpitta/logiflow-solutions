@@ -1,0 +1,23 @@
+DROP POLICY IF EXISTS "Authenticated read vehicles" ON public.vehicles;
+DROP POLICY IF EXISTS "Admins manage vehicles" ON public.vehicles;
+DROP POLICY IF EXISTS "Admins read agencies" ON public.agencies;
+DROP POLICY IF EXISTS "Admins manage agencies" ON public.agencies;
+DROP POLICY IF EXISTS "Admins read events" ON public.events;
+DROP POLICY IF EXISTS "Admins manage events" ON public.events;
+DROP POLICY IF EXISTS "Admins read ev" ON public.event_vehicles;
+DROP POLICY IF EXISTS "Admins manage ev" ON public.event_vehicles;
+DROP POLICY IF EXISTS "Admins read emc" ON public.event_management_companies;
+DROP POLICY IF EXISTS "Admins manage emc" ON public.event_management_companies;
+DROP POLICY IF EXISTS "Client manage vehicles" ON public.vehicles;
+DROP POLICY IF EXISTS "Client manage agencies" ON public.agencies;
+DROP POLICY IF EXISTS "Client manage events" ON public.events;
+DROP POLICY IF EXISTS "Client manage event vehicles" ON public.event_vehicles;
+DROP POLICY IF EXISTS "Client manage emc" ON public.event_management_companies;
+DROP POLICY IF EXISTS "Client manage trip logs" ON public.driver_trip_logs;
+
+ALTER TABLE IF EXISTS public.vehicles DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.agencies DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.events DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.event_vehicles DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.event_management_companies DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.driver_trip_logs DISABLE ROW LEVEL SECURITY;

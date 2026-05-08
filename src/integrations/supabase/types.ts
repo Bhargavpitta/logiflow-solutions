@@ -44,6 +44,75 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_trip_logs: {
+        Row: {
+          closing_meter: number
+          closing_time: string | null
+          contact_number: string | null
+          created_at: string
+          driver_name: string
+          extra_hour_rate: number
+          extra_time_rate: number
+          id: string
+          inferred_ownership: string
+          log_date: string
+          ownership_raw: string | null
+          package_amount: number
+          package_type: string
+          source_row: number
+          starting_meter: number
+          starting_time: string | null
+          updated_at: string
+          vehicle_model: string
+          vehicle_number: string
+          vehicle_type: string
+        }
+        Insert: {
+          closing_meter?: number
+          closing_time?: string | null
+          contact_number?: string | null
+          created_at?: string
+          driver_name: string
+          extra_hour_rate?: number
+          extra_time_rate?: number
+          id?: string
+          inferred_ownership: string
+          log_date: string
+          ownership_raw?: string | null
+          package_amount?: number
+          package_type?: string
+          source_row: number
+          starting_meter?: number
+          starting_time?: string | null
+          updated_at?: string
+          vehicle_model?: string
+          vehicle_number: string
+          vehicle_type?: string
+        }
+        Update: {
+          closing_meter?: number
+          closing_time?: string | null
+          contact_number?: string | null
+          created_at?: string
+          driver_name?: string
+          extra_hour_rate?: number
+          extra_time_rate?: number
+          id?: string
+          inferred_ownership?: string
+          log_date?: string
+          ownership_raw?: string | null
+          package_amount?: number
+          package_type?: string
+          source_row?: number
+          starting_meter?: number
+          starting_time?: string | null
+          updated_at?: string
+          vehicle_model?: string
+          vehicle_number?: string
+          vehicle_type?: string
+        }
+        Relationships: []
+      }
       event_management_companies: {
         Row: {
           alt_mobile: string | null
