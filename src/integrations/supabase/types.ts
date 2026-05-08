@@ -14,6 +14,156 @@ export type Database = {
   }
   public: {
     Tables: {
+      agencies: {
+        Row: {
+          agency_name: string
+          alt_number: string | null
+          created_at: string
+          id: string
+          organizer_name: string | null
+          organizer_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          agency_name: string
+          alt_number?: string | null
+          created_at?: string
+          id?: string
+          organizer_name?: string | null
+          organizer_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agency_name?: string
+          alt_number?: string | null
+          created_at?: string
+          id?: string
+          organizer_name?: string | null
+          organizer_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      event_management_companies: {
+        Row: {
+          alt_mobile: string | null
+          company_name: string
+          created_at: string
+          email: string | null
+          id: string
+          mobile: string | null
+          organizer_name: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          alt_mobile?: string | null
+          company_name: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          mobile?: string | null
+          organizer_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          alt_mobile?: string | null
+          company_name?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          mobile?: string | null
+          organizer_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      event_vehicles: {
+        Row: {
+          created_at: string
+          day_date: string
+          end_time: string | null
+          event_id: string
+          id: string
+          start_time: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_date: string
+          end_time?: string | null
+          event_id: string
+          id?: string
+          start_time?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          day_date?: string
+          end_time?: string | null
+          event_id?: string
+          id?: string
+          start_time?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_vehicles_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_vehicles_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          from_date: string
+          id: string
+          name: string
+          organizer_name: string | null
+          organizer_number: string | null
+          status: string
+          to_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          from_date: string
+          id?: string
+          name: string
+          organizer_name?: string | null
+          organizer_number?: string | null
+          status?: string
+          to_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          from_date?: string
+          id?: string
+          name?: string
+          organizer_name?: string | null
+          organizer_number?: string | null
+          status?: string
+          to_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       logistics_entries: {
         Row: {
           closing_meter: number
@@ -127,6 +277,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vehicles: {
+        Row: {
+          agency_id: string | null
+          created_at: string
+          id: string
+          owner_name: string
+          owner_number: string | null
+          ownership: string
+          status: string
+          updated_at: string
+          vehicle_model: string
+          vehicle_name: string
+          vehicle_number: string
+        }
+        Insert: {
+          agency_id?: string | null
+          created_at?: string
+          id?: string
+          owner_name: string
+          owner_number?: string | null
+          ownership: string
+          status?: string
+          updated_at?: string
+          vehicle_model?: string
+          vehicle_name?: string
+          vehicle_number: string
+        }
+        Update: {
+          agency_id?: string | null
+          created_at?: string
+          id?: string
+          owner_name?: string
+          owner_number?: string | null
+          ownership?: string
+          status?: string
+          updated_at?: string
+          vehicle_model?: string
+          vehicle_name?: string
+          vehicle_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
