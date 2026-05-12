@@ -172,7 +172,7 @@ const Dashboard = ({ mode = "admin" }: { mode?: "admin" | "user" }) => {
           <div className="surface-card p-5 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <div className="text-sm font-semibold text-secondary dark:text-foreground">Filters</div>
+                <div className="text-sm font-semibold text-secondary">Filters</div>
                 <p className="mt-1 text-sm text-muted-foreground">Review the exact trips you want before exporting or invoicing.</p>
               </div>
               <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
@@ -216,7 +216,7 @@ const Dashboard = ({ mode = "admin" }: { mode?: "admin" | "user" }) => {
           </div>
 
           <div className="surface-card p-5 sm:p-6">
-            <div className="text-sm font-semibold text-secondary dark:text-foreground">Export section</div>
+            <div className="text-sm font-semibold text-secondary">Export section</div>
             <p className="mt-1 text-sm text-muted-foreground">Keep exports and invoice generation close to the filtered dataset.</p>
 
             <div className="mt-5 space-y-3">
@@ -242,7 +242,7 @@ const Dashboard = ({ mode = "admin" }: { mode?: "admin" | "user" }) => {
           <div className="surface-card p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-semibold text-secondary dark:text-foreground">Driver analytics</div>
+                <div className="text-sm font-semibold text-secondary">Driver analytics</div>
                 <p className="mt-1 text-sm text-muted-foreground">Highest value contributors across the current filter.</p>
               </div>
               <TrendingUp className="h-5 w-5 text-primary" />
@@ -260,7 +260,7 @@ const Dashboard = ({ mode = "admin" }: { mode?: "admin" | "user" }) => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-secondary dark:text-foreground">{formatINR(driver.amount)}</div>
+                      <div className="font-bold text-secondary">{formatINR(driver.amount)}</div>
                       <div className="text-xs text-muted-foreground">current billed amount</div>
                     </div>
                   </div>
@@ -272,7 +272,7 @@ const Dashboard = ({ mode = "admin" }: { mode?: "admin" | "user" }) => {
           <div className="surface-card p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-semibold text-secondary dark:text-foreground">Recent trips</div>
+                <div className="text-sm font-semibold text-secondary">Recent trips</div>
                 <p className="mt-1 text-sm text-muted-foreground">A quick snapshot of the latest visible records.</p>
               </div>
               <Truck className="h-5 w-5 text-primary" />
@@ -290,7 +290,7 @@ const Dashboard = ({ mode = "admin" }: { mode?: "admin" | "user" }) => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-secondary dark:text-foreground">{formatINR(Number(trip.total_amount))}</div>
+                      <div className="font-bold text-secondary">{formatINR(Number(trip.total_amount))}</div>
                       <div className="text-xs text-muted-foreground">{Number(trip.total_km).toFixed(0)} km</div>
                     </div>
                   </div>
@@ -373,7 +373,7 @@ const Dashboard = ({ mode = "admin" }: { mode?: "admin" | "user" }) => {
                       <Td right mono className={Number(r.extra_km) > 0 ? "font-semibold text-tertiary" : "text-muted-foreground"}>
                         {Number(r.extra_km).toFixed(0)}
                       </Td>
-                      <Td right className="font-bold text-secondary dark:text-foreground">{formatINR(Number(r.total_amount))}</Td>
+                      <Td right className="font-bold text-secondary">{formatINR(Number(r.total_amount))}</Td>
                       <Td>
                         <div className="flex gap-1">
                           {(r.user_id === user?.id || isAdminMode) && (
@@ -421,7 +421,7 @@ const Dashboard = ({ mode = "admin" }: { mode?: "admin" | "user" }) => {
                     <Td right mono className="font-bold">{totals.km.toFixed(0)}</Td>
                     <Td right mono className="font-bold text-tertiary">{totals.extraHrs.toFixed(1)}</Td>
                     <Td right mono className="font-bold text-tertiary">{totals.extraKm.toFixed(0)}</Td>
-                    <Td right className="text-base font-bold text-secondary dark:text-foreground">{formatINR(totals.amount)}</Td>
+                    <Td right className="text-base font-bold text-secondary">{formatINR(totals.amount)}</Td>
                     <Td />
                   </tr>
                 </tfoot>
@@ -449,7 +449,7 @@ const SummaryCard = ({
     <div className="flex items-start justify-between gap-4">
       <div>
         <div className="text-sm font-medium text-muted-foreground">{label}</div>
-        <div className="mt-3 text-3xl font-extrabold text-secondary dark:text-foreground">{value}</div>
+        <div className="mt-3 text-3xl font-extrabold text-secondary">{value}</div>
         <div className="mt-2 text-sm text-muted-foreground">{note}</div>
       </div>
       <div className="rounded-2xl bg-primary/10 p-3 text-primary">

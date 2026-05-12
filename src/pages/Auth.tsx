@@ -93,8 +93,8 @@ const Auth = () => {
       <div className="container py-8 lg:py-12">
         <div className="grid gap-8 lg:grid-cols-[1fr_480px]">
           <section className="section-shell relative hidden overflow-hidden lg:block">
-            <div className="hero-shape left-8 top-8 h-28 w-28 bg-orange-200/60 dark:bg-orange-500/20" />
-            <div className="hero-shape bottom-12 right-10 h-24 w-24 bg-emerald-200/60 dark:bg-emerald-500/16" />
+            <div className="hero-shape left-8 top-8 h-28 w-28 bg-orange-200/60" />
+            <div className="hero-shape bottom-12 right-10 h-24 w-24 bg-emerald-200/60" />
             <div className="relative space-y-8">
               <div className="eyebrow">
                 <ShieldCheck className="h-3.5 w-3.5" />
@@ -118,13 +118,13 @@ const Auth = () => {
 
               <div className="surface-muted grid gap-5 p-5 sm:grid-cols-2">
                 <div>
-                  <div className="text-sm font-semibold text-secondary dark:text-foreground">For admins</div>
+                  <div className="text-sm font-semibold text-secondary">For admins</div>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
                     Review all trips, generate invoices, export Excel sheets, and monitor operational totals.
                   </p>
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-secondary dark:text-foreground">For users</div>
+                  <div className="text-sm font-semibold text-secondary">For users</div>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
                     Record trip details, edit your own entries, and keep billing inputs clean for approval.
                   </p>
@@ -232,7 +232,7 @@ const Auth = () => {
 
 const AuthStat = ({ value, label }: { value: string; label: string }) => (
   <div className="surface-muted p-4">
-    <div className="text-2xl font-extrabold text-secondary dark:text-foreground">{value}</div>
+    <div className="text-2xl font-extrabold text-secondary">{value}</div>
     <div className="mt-1 text-sm text-muted-foreground">{label}</div>
   </div>
 );

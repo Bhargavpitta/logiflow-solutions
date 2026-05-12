@@ -154,7 +154,7 @@ const Index = () => {
             {pricing.map((plan) => (
               <div key={plan.label} className="surface-muted p-5">
                 <div className="text-sm font-semibold text-muted-foreground">{plan.label}</div>
-                <div className="mt-3 text-3xl font-extrabold text-secondary dark:text-foreground">{plan.amount}</div>
+                <div className="mt-3 text-3xl font-extrabold text-secondary">{plan.amount}</div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">{plan.note}</p>
               </div>
             ))}
@@ -187,7 +187,7 @@ const Index = () => {
       <footer className="container py-10">
         <div className="grid gap-6 border-t border-border/70 pt-6 md:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <div className="text-lg font-extrabold text-secondary dark:text-foreground">OneHmt Logistics</div>
+            <div className="text-lg font-extrabold text-secondary">OneHmt Logistics</div>
             <p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
               Purpose-built trip management and billing for teams moving people, vehicles, and invoices every day.
             </p>

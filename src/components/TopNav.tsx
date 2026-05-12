@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, Moon, Sun, Truck, User as UserIcon } from "lucide-react";
-import { useTheme } from "@/hooks/use-theme";
+import { LogOut, Truck, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
@@ -14,7 +13,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export const TopNav = () => {
-  const { theme, toggle } = useTheme();
   const { user, isAdmin, setUser } = useAuth();
   const nav = useNavigate();
 
@@ -36,7 +34,7 @@ export const TopNav = () => {
             <Truck className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-lg font-extrabold tracking-tight text-secondary dark:text-foreground">
+            <div className="text-lg font-extrabold tracking-tight text-secondary">
               OneHmt Logistics
             </div>
             <div className="hidden text-[11px] uppercase tracking-[0.18em] text-muted-foreground sm:block">
@@ -57,9 +55,6 @@ export const TopNav = () => {
               </Link>
             </>
           )}
-          <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme" className="rounded-full">
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

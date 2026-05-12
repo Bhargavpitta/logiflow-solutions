@@ -1,24 +1,19 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, ReactNode } from 'react';
 
-type Theme = 'dark' | 'light';
-const ThemeCtx = createContext<{ theme: Theme; toggle: () => void }>({ theme: 'dark', toggle: () => {} });
+type Theme = 'light';
+
+const ThemeCtx = createContext<{ theme: Theme; toggle: () => void }>({
+  theme: 'light',
+  toggle: () => {},
+});
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === 'undefined') return 'dark';
-    return (localStorage.getItem('logitrack-theme') as Theme) || 'dark';
-  });
-
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('logitrack-theme', theme);
-  }, [theme]);
+    document.documentElement.classList.remove('dark');
+    localStorage.setItem('logitrack-theme', 'light');
+  }, []);
 
-  return (
-    <ThemeCtx.Provider value={{ theme, toggle: () => setTheme(t => (t === 'dark' ? 'light' : 'dark')) }}>
-      {children}
-    </ThemeCtx.Provider>
-  );
+  return <ThemeCtx.Provider value={{ theme: 'light', toggle: () => {} }}>{children}</ThemeCtx.Provider>;
 };
 
 export const useTheme = () => useContext(ThemeCtx);

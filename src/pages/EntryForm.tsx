@@ -291,7 +291,7 @@ const EntryForm = () => {
             <div className="surface-card sticky top-24 p-6 sm:p-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-secondary dark:text-foreground">Billing preview</div>
+                  <div className="text-sm font-semibold text-secondary">Billing preview</div>
                   <div className="mt-1 text-sm text-muted-foreground">{PACKAGES[form.package_hours_id]?.label}</div>
                 </div>
                 <div className="rounded-2xl bg-primary/10 p-3 text-primary">
@@ -316,7 +316,7 @@ const EntryForm = () => {
                       <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Estimated total</div>
                       <div className="mt-1 text-sm text-muted-foreground">Live preview based on current package and trip input.</div>
                     </div>
-                    <div className="text-3xl font-extrabold text-secondary dark:text-foreground">{formatINR(billing.totalAmount)}</div>
+                    <div className="text-3xl font-extrabold text-secondary">{formatINR(billing.totalAmount)}</div>
                   </div>
                 </div>
               </div>
@@ -362,7 +362,7 @@ const Field = ({ label, children }: { label: string; children: ReactNode }) => (
 const Row = ({ label, value, accent }: { label: string; value: string; accent?: boolean }) => (
   <div className="flex justify-between gap-3">
     <span className="text-muted-foreground">{label}</span>
-    <span className={`font-semibold ${accent ? "text-tertiary" : "text-secondary dark:text-foreground"}`}>{value}</span>
+    <span className={`font-semibold ${accent ? "text-tertiary" : "text-secondary"}`}>{value}</span>
   </div>
 );
 
@@ -380,7 +380,7 @@ const PreviewStat = ({
       <div className="text-sm font-medium text-muted-foreground">{label}</div>
       <Icon className="h-4 w-4 text-primary" />
     </div>
-    <div className="mt-3 text-2xl font-extrabold text-secondary dark:text-foreground">{value}</div>
+    <div className="mt-3 text-2xl font-extrabold text-secondary">{value}</div>
   </div>
 );
 
