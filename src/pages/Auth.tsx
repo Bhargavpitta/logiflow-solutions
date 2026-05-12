@@ -12,7 +12,7 @@ import { apiFetch, type AppUser } from "@/lib/api";
 import { requestGoogleAccessToken } from "@/lib/google";
 import { toast } from "sonner";
 
-const emailSchema = z.string().trim().email("Invalid email").max(255);
+const emailSchema = z.string().trim().min(1, "Required").max(255);
 const passwordSchema = z.string().min(6, "Min 6 characters").max(128);
 const nameSchema = z.string().trim().min(1, "Required").max(100);
 
@@ -167,14 +167,14 @@ const Auth = () => {
                 </TabsContent>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-foreground">Email address</Label>
+                  <Label htmlFor="email" className="text-sm font-medium text-foreground">Email / Username</Label>
                   <Input
                     id="email"
-                    type="email"
+                    type="text"
                     required
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    placeholder="user@company.com"
+                    placeholder="admin or user@company.com"
                     className="h-12 rounded-2xl"
                   />
                 </div>

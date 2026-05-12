@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, X, Trash2, Pencil, Filter, Clock } from "lucide-react";
+import { Plus, X, Trash2, Pencil, Filter, ChevronDown, ChevronUp } from "lucide-react";
 import AdminLayout from "@/layouts/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { adminApi, ownershipBadge, type EventRow, type Vehicle } from "@/lib/admin-api";
+import { adminApi, type EventRow, type Vehicle, type Driver, LOCATIONS, RATE_CARDS } from "@/lib/admin-api";
 import { toast } from "sonner";
 
 interface DraftBooking {
@@ -19,6 +19,11 @@ interface DraftBooking {
   day_date: string;
   start_time?: string | null;
   end_time?: string | null;
+  driver_id?: string | null;
+  starting_meter?: string;
+  ending_meter?: string;
+  rate_card?: string | null;
+  reporting_time?: string | null;
 }
 
 function daysBetween(a: string, b: string): string[] {
@@ -34,7 +39,108 @@ function daysBetween(a: string, b: string): string[] {
 }
 
 function emptyDraft() {
-  return { name: "", from_date: "", to_date: "", organizer_name: "", organizer_number: "", status: "pending" };
+  return {
+    name: "",
+    from_date: "",
+    to_date: "",
+    host_id: "",
+    event_company_id: "",
+    location: "",
+    status: "pending",
+  };
+}
+
+function statusBadge(status: string) {
+  const map: Record<string, string> = {
+    completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    active: "bg-blue-50 text-blue-700 border-blue-200",
+    pending: "bg-amber-50 text-amber-700 border-amber-200",
+    cancelled: "bg-red-50 text-red-600 border-red-200",
+  };
+  return map[status] || "bg-slate-100 text-slate-600 border-slate-200";
+}
+
+function VehicleAssignmentCard({
+  booking,
+  vehicles,
+  drivers,
+  onUpdate,
+  onRemove,
+}: {
+  booking: DraftBooking & { _idx: number };
+  vehicles: Vehicle[];
+  drivers: Driver[];
+  onUpdate: (idx: number, patch: Partial<DraftBooking>) => void;
+  onRemove: (idx: number) => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const v = vehicles.find((x) => x.id === booking.vehicle_id);
+  const vehicleLabel = v ? `${v.vehicle_name} (${v.vehicle_number})` : booking.vehicle_id;
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50">
+      <div className="flex items-center justify-between px-3 py-2">
+        <button onClick={() => setExpanded(!expanded)} className="flex items-center gap-2 text-sm font-medium text-slate-900 flex-1 text-left">
+          {expanded ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+          {vehicleLabel}
+        </button>
+        <Button size="icon" variant="ghost" onClick={() => onRemove(booking._idx)}><X className="h-4 w-4" /></Button>
+      </div>
+      {expanded && (
+        <div className="px-3 pb-3 grid gap-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-1.5">
+              <Label className="text-xs">Starting Time</Label>
+              <Input type="time" value={booking.start_time || ""} onChange={(e) => onUpdate(booking._idx, { start_time: e.target.value })} className="h-8 text-xs" />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-xs">Ending Time</Label>
+              <Input type="time" value={booking.end_time || ""} onChange={(e) => onUpdate(booking._idx, { end_time: e.target.value })} className="h-8 text-xs" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-1.5">
+              <Label className="text-xs">Starting Meter Reading</Label>
+              <Input type="number" value={booking.starting_meter || ""} onChange={(e) => onUpdate(booking._idx, { starting_meter: e.target.value })} className="h-8 text-xs" placeholder="km" />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-xs">Ending Meter Reading</Label>
+              <Input type="number" value={booking.ending_meter || ""} onChange={(e) => onUpdate(booking._idx, { ending_meter: e.target.value })} className="h-8 text-xs" placeholder="km (editable later)" />
+            </div>
+          </div>
+          <div className="grid gap-1.5">
+            <Label className="text-xs">Driver</Label>
+            <Select value={booking.driver_id || "__none__"} onValueChange={(v) => onUpdate(booking._idx, { driver_id: v === "__none__" ? null : v })}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select driver" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— No driver —</SelectItem>
+                {drivers.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.driver_name}{d.agency_name ? ` (${d.agency_name})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-1.5">
+              <Label className="text-xs">Rate Card</Label>
+              <Select value={booking.rate_card || ""} onValueChange={(v) => onUpdate(booking._idx, { rate_card: v || null })}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select rate" /></SelectTrigger>
+                <SelectContent>
+                  {RATE_CARDS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-xs">Reporting Time</Label>
+              <Input type="time" value={booking.reporting_time || ""} onChange={(e) => onUpdate(booking._idx, { reporting_time: e.target.value })} className="h-8 text-xs" />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function Events() {
@@ -45,10 +151,12 @@ export default function Events() {
   const [draft, setDraft] = useState(emptyDraft());
   const [bookings, setBookings] = useState<DraftBooking[]>([]);
   const [vehiclePicker, setVehiclePicker] = useState<{ day: string } | null>(null);
-  const [timeEdit, setTimeEdit] = useState<{ day: string; vehicleId: string; start: string; end: string } | null>(null);
 
   const { data: events = [] } = useQuery({ queryKey: ["events"], queryFn: adminApi.events.list });
   const { data: vehicles = [] } = useQuery({ queryKey: ["vehicles"], queryFn: adminApi.vehicles.list });
+  const { data: drivers = [] } = useQuery({ queryKey: ["drivers"], queryFn: adminApi.drivers.list });
+  const { data: hosts = [] } = useQuery({ queryKey: ["hosts"], queryFn: adminApi.hosts.list });
+  const { data: companies = [] } = useQuery({ queryKey: ["emc"], queryFn: adminApi.emc.list });
 
   useEffect(() => {
     if (params.get("new") === "1") {
@@ -73,17 +181,39 @@ export default function Events() {
       name: e.name,
       from_date: e.from_date.slice(0, 10),
       to_date: e.to_date.slice(0, 10),
-      organizer_name: e.organizer_name || "",
-      organizer_number: e.organizer_number || "",
+      host_id: e.host_id || "",
+      event_company_id: e.event_company_id || "",
+      location: e.location || "",
       status: e.status,
     });
-    setBookings(e.vehicles.map((v) => ({ id: v.id, vehicle_id: v.vehicle_id, day_date: v.day_date.slice(0, 10), start_time: v.start_time, end_time: v.end_time })));
+    setBookings(e.vehicles.map((v) => ({
+      id: v.id,
+      vehicle_id: v.vehicle_id,
+      day_date: v.day_date.slice(0, 10),
+      start_time: v.start_time,
+      end_time: v.end_time,
+      driver_id: v.driver_id,
+      starting_meter: v.starting_meter != null ? String(v.starting_meter) : "",
+      ending_meter: v.ending_meter != null ? String(v.ending_meter) : "",
+      rate_card: v.rate_card,
+      reporting_time: v.reporting_time,
+    })));
     setOpen(true);
   }
 
   const save = useMutation({
     mutationFn: () => {
-      const payload = { ...draft, vehicles: bookings.map(({ id, ...b }) => b) };
+      const payload = {
+        ...draft,
+        host_id: draft.host_id || null,
+        event_company_id: draft.event_company_id || null,
+        location: draft.location || null,
+        vehicles: bookings.map(({ id, ...b }) => ({
+          ...b,
+          starting_meter: b.starting_meter ? Number(b.starting_meter) : null,
+          ending_meter: b.ending_meter ? Number(b.ending_meter) : null,
+        })),
+      };
       return editing ? adminApi.events.update(editing.id, payload) : adminApi.events.create(payload);
     },
     onSuccess: () => {
@@ -113,14 +243,8 @@ export default function Events() {
     setBookings(bookings.filter((_, i) => i !== idx));
   }
 
-  function applyTime() {
-    if (!timeEdit) return;
-    setBookings(bookings.map((b) =>
-      b.day_date === timeEdit.day && b.vehicle_id === timeEdit.vehicleId
-        ? { ...b, start_time: timeEdit.start || null, end_time: timeEdit.end || null }
-        : b,
-    ));
-    setTimeEdit(null);
+  function updateBooking(idx: number, patch: Partial<DraftBooking>) {
+    setBookings(bookings.map((b, i) => i === idx ? { ...b, ...patch } : b));
   }
 
   return (
@@ -129,11 +253,13 @@ export default function Events() {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Events</h1>
-            <p className="mt-1 text-slate-500">Plan, assign vehicles, and track event logistics.</p>
+            <p className="mt-1 text-slate-500">Plan, assign vehicles and drivers, and track event logistics.</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="rounded-lg gap-2"><Filter className="h-4 w-4" /> Filter</Button>
-            <Button onClick={openCreate} className="bg-[#2563eb] hover:bg-[#1d4ed8] rounded-lg gap-2"><Plus className="h-4 w-4" /> Create Event</Button>
+            <Button onClick={openCreate} className="bg-[#2563eb] hover:bg-[#1d4ed8] rounded-lg gap-2">
+              <Plus className="h-4 w-4" /> Create Event
+            </Button>
           </div>
         </div>
 
@@ -143,9 +269,11 @@ export default function Events() {
               <TableHeader>
                 <TableRow className="bg-slate-50 hover:bg-slate-50">
                   <TableHead>Event Name</TableHead>
-                  <TableHead>Organizer</TableHead>
+                  <TableHead>Host</TableHead>
+                  <TableHead>Event Company</TableHead>
                   <TableHead>From</TableHead>
                   <TableHead>To</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead>Vehicles</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -153,16 +281,22 @@ export default function Events() {
               </TableHeader>
               <TableBody>
                 {events.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="py-8 text-center text-slate-500">No events yet. Click Create Event.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9} className="py-8 text-center text-slate-500">No events yet. Click Create Event to get started.</TableCell></TableRow>
                 ) : events.map((e) => (
                   <TableRow key={e.id} className="hover:bg-slate-50">
                     <TableCell className="font-medium text-slate-900">{e.name}</TableCell>
-                    <TableCell>{e.organizer_name || "—"}</TableCell>
+                    <TableCell>{e.host_name || "—"}</TableCell>
+                    <TableCell>{e.event_company_name || "—"}</TableCell>
                     <TableCell>{new Date(e.from_date).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(e.to_date).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {e.location ? (
+                        <span className="inline-flex text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">{e.location}</span>
+                      ) : "—"}
+                    </TableCell>
                     <TableCell>{e.vehicles.length}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex text-xs px-2 py-1 rounded-full font-medium ${e.status === "active" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"}`}>{e.status}</span>
+                      <span className={`inline-flex text-xs px-2 py-1 rounded-full font-medium border ${statusBadge(e.status)}`}>{e.status}</span>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button size="icon" variant="ghost" onClick={() => openEdit(e)}><Pencil className="h-4 w-4" /></Button>
@@ -176,76 +310,57 @@ export default function Events() {
         </div>
       </div>
 
+      {/* Create / Edit Sheet */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
           <SheetHeader>
             <SheetTitle>{editing ? "Edit Event" : "Create Event"}</SheetTitle>
           </SheetHeader>
           <div className="mt-6 grid gap-5">
-            <div className="grid gap-2"><Label>Event Name</Label><Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-2"><Label>From Date</Label><Input type="date" value={draft.from_date} onChange={(e) => setDraft({ ...draft, from_date: e.target.value })} /></div>
-              <div className="grid gap-2"><Label>To Date</Label><Input type="date" value={draft.to_date} onChange={(e) => setDraft({ ...draft, to_date: e.target.value })} /></div>
+            {/* Basic Info */}
+            <div className="grid gap-2">
+              <Label>Event Name</Label>
+              <Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Enter event name" />
             </div>
-
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Vehicles Needed</div>
-              {days.length === 0 ? (
-                <div className="text-sm text-slate-500 border border-dashed rounded-xl p-4">Pick a date range to add vehicles per day.</div>
-              ) : (
-                <div className="space-y-3">
-                  {days.map((day) => {
-                    const dayBookings = bookings.map((b, i) => ({ ...b, _idx: i })).filter((b) => b.day_date === day);
-                    return (
-                      <div key={day} className="rounded-xl border border-slate-200 p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="text-sm font-semibold text-slate-900">{new Date(day).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</div>
-                          <Button size="sm" variant="ghost" className="text-[#2563eb]" onClick={() => setVehiclePicker({ day })}>
-                            <Plus className="h-4 w-4 mr-1" /> Add Vehicle
-                          </Button>
-                        </div>
-                        {dayBookings.length === 0 ? (
-                          <div className="text-xs text-slate-400">No vehicles yet.</div>
-                        ) : (
-                          <div className="space-y-2">
-                            {dayBookings.map((b) => {
-                              const v = vehicles.find((x) => x.id === b.vehicle_id);
-                              if (!v) return null;
-                              const badge = ownershipBadge(v.ownership);
-                              return (
-                                <div key={b._idx} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
-                                  <div className="min-w-0">
-                                    <div className="font-medium text-slate-900 truncate">{v.vehicle_model} ({v.vehicle_number})</div>
-                                    <div className="text-xs text-slate-500 truncate">{v.owner_name}</div>
-                                    {(b.start_time || b.end_time) && (
-                                      <div className="text-xs text-[#2563eb] mt-0.5"><Clock className="inline h-3 w-3 mr-1" />{b.start_time || "—"} → {b.end_time || "—"}</div>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${badge.cls}`}>{badge.label.split(" ")[0]}</span>
-                                    <Button size="icon" variant="ghost" onClick={() => setTimeEdit({ day, vehicleId: b.vehicle_id, start: b.start_time || "", end: b.end_time || "" })}><Clock className="h-4 w-4" /></Button>
-                                    <Button size="icon" variant="ghost" onClick={() => removeBooking(b._idx)}><X className="h-4 w-4" /></Button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              <div className="mt-3 text-xs text-slate-500 flex flex-wrap gap-3">
-                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-red-500" /> Agency</span>
-                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-500" /> Driver/Owner</span>
-                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-blue-500" /> Driver</span>
+            <div className="grid gap-2">
+              <Label>Event Company</Label>
+              <Select value={draft.event_company_id || "__none__"} onValueChange={(v) => setDraft({ ...draft, event_company_id: v === "__none__" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Select event company" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— None —</SelectItem>
+                  {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Host</Label>
+              <Select value={draft.host_id || "__none__"} onValueChange={(v) => setDraft({ ...draft, host_id: v === "__none__" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Select host" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— None —</SelectItem>
+                  {hosts.map((h) => <SelectItem key={h.id} value={h.id}>{h.host_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-2">
+                <Label>From Date</Label>
+                <Input type="date" value={draft.from_date} onChange={(e) => setDraft({ ...draft, from_date: e.target.value })} />
+              </div>
+              <div className="grid gap-2">
+                <Label>To Date</Label>
+                <Input type="date" value={draft.to_date} onChange={(e) => setDraft({ ...draft, to_date: e.target.value, })} />
               </div>
             </div>
-
-            <div className="grid gap-2"><Label>Event Organizer</Label><Input value={draft.organizer_name} onChange={(e) => setDraft({ ...draft, organizer_name: e.target.value })} /></div>
-            <div className="grid gap-2"><Label>Organizer Number</Label><Input value={draft.organizer_number} onChange={(e) => setDraft({ ...draft, organizer_number: e.target.value })} /></div>
-
+            <div className="grid gap-2">
+              <Label>Location</Label>
+              <Select value={draft.location} onValueChange={(v) => setDraft({ ...draft, location: v })}>
+                <SelectTrigger><SelectValue placeholder="Select location" /></SelectTrigger>
+                <SelectContent>
+                  {LOCATIONS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid gap-2">
               <Label>Status</Label>
               <Select value={draft.status} onValueChange={(v) => setDraft({ ...draft, status: v })}>
@@ -259,23 +374,67 @@ export default function Events() {
               </Select>
             </div>
 
+            {/* Per-Day Vehicle Assignment */}
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-3">Vehicle Assignments by Date</div>
+              {days.length === 0 ? (
+                <div className="text-sm text-slate-500 border border-dashed rounded-xl p-4">Select a date range above to assign vehicles per day.</div>
+              ) : (
+                <div className="space-y-4">
+                  {days.map((day) => {
+                    const dayBookings = bookings.map((b, i) => ({ ...b, _idx: i })).filter((b) => b.day_date === day);
+                    return (
+                      <div key={day} className="rounded-xl border border-slate-200 p-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="text-sm font-semibold text-slate-900">
+                            {new Date(day + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+                          </div>
+                          <Button size="sm" variant="ghost" className="text-[#2563eb] text-xs" onClick={() => setVehiclePicker({ day })}>
+                            <Plus className="h-3.5 w-3.5 mr-1" /> Add Vehicle
+                          </Button>
+                        </div>
+                        {dayBookings.length === 0 ? (
+                          <div className="text-xs text-slate-400 py-1">No vehicles assigned for this day.</div>
+                        ) : (
+                          <div className="space-y-2">
+                            {dayBookings.map((b) => (
+                              <VehicleAssignmentCard
+                                key={b._idx}
+                                booking={b}
+                                vehicles={vehicles}
+                                drivers={drivers}
+                                onUpdate={updateBooking}
+                                onRemove={removeBooking}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-2 pt-2 border-t">
               <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button onClick={() => save.mutate()} disabled={save.isPending} className="flex-1 bg-[#2563eb] hover:bg-[#1d4ed8]">
-                {save.isPending ? "Saving…" : "Save Changes"}
+              <Button onClick={() => save.mutate()} disabled={save.isPending || !draft.name} className="flex-1 bg-[#2563eb] hover:bg-[#1d4ed8]">
+                {save.isPending ? "Saving…" : "Save Event"}
               </Button>
             </div>
           </div>
         </SheetContent>
       </Sheet>
 
-      {/* Vehicle picker */}
+      {/* Vehicle Picker Dialog */}
       <Dialog open={!!vehiclePicker} onOpenChange={(v) => !v && setVehiclePicker(null)}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Select a Vehicle</DialogTitle></DialogHeader>
           <div className="grid gap-2">
-            {vehicles.map((v) => {
-              const b = ownershipBadge(v.ownership);
+            {vehicles.length === 0 ? (
+              <div className="py-8 text-center text-slate-500">No vehicles available. Add vehicles in the Vehicles section first.</div>
+            ) : vehicles.map((v) => {
+              const isAgency = v.ownership === "agency";
               return (
                 <button
                   key={v.id}
@@ -283,30 +442,18 @@ export default function Events() {
                   className="flex items-center justify-between rounded-lg border border-slate-200 p-3 text-left hover:border-[#2563eb] hover:bg-blue-50 transition"
                 >
                   <div>
-                    <div className="font-medium text-sm">{v.vehicle_model} <span className="text-slate-500 font-normal">({v.vehicle_number})</span></div>
-                    <div className="text-xs text-slate-500">{v.owner_name} · {v.owner_number || "—"}</div>
+                    <div className="font-medium text-sm">{v.vehicle_name} <span className="text-slate-500 font-normal">({v.vehicle_number})</span></div>
+                    <div className="text-xs text-slate-500">{v.vehicle_type || v.vehicle_model}{v.model_year ? ` · ${v.model_year}` : ""}{v.location ? ` · ${v.location}` : ""}</div>
                   </div>
-                  <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${b.cls}`}>{b.label}</span>
+                  <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${isAgency ? "bg-red-50 text-red-700 border-red-200" : "bg-blue-50 text-blue-700 border-blue-200"}`}>
+                    {isAgency ? (v.agency_name ? `Agency — ${v.agency_name}` : "Agency") : "Independent"}
+                  </span>
                 </button>
               );
             })}
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Time edit */}
-      <Dialog open={!!timeEdit} onOpenChange={(v) => !v && setTimeEdit(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Set Start & End Time</DialogTitle></DialogHeader>
-          {timeEdit && (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-2"><Label>Start Time</Label><Input type="time" value={timeEdit.start} onChange={(e) => setTimeEdit({ ...timeEdit, start: e.target.value })} /></div>
-              <div className="grid gap-2"><Label>End Time</Label><Input type="time" value={timeEdit.end} onChange={(e) => setTimeEdit({ ...timeEdit, end: e.target.value })} /></div>
-            </div>
-          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setTimeEdit(null)}>Cancel</Button>
-            <Button onClick={applyTime} className="bg-[#2563eb] hover:bg-[#1d4ed8]">Apply</Button>
+            <Button variant="outline" onClick={() => setVehiclePicker(null)}>Cancel</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -12,7 +12,9 @@ import {
   Bell,
   Settings,
   Menu,
-  X,
+  Users,
+  User,
+  Building,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -33,8 +35,11 @@ import { toast } from "sonner";
 const NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { to: "/admin/events", label: "Events", icon: Calendar },
-  { to: "/admin/emc", label: "EMC", icon: Building2 },
-  { to: "/admin/logistics", label: "Logistics", icon: Truck },
+  { to: "/admin/hosts", label: "Hosts", icon: Users },
+  { to: "/admin/emc", label: "Event Companies", icon: Building2 },
+  { to: "/admin/agencies", label: "Agencies", icon: Building },
+  { to: "/admin/vehicles", label: "Vehicles", icon: Truck },
+  { to: "/admin/drivers", label: "Drivers", icon: User },
 ];
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -42,33 +47,31 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const nav = useNavigate();
 
   const handleLogout = async () => {
-    try {
-      await apiFetch("/auth/logout", { method: "POST" });
-    } catch {}
+    try { await apiFetch("/auth/logout", { method: "POST" }); } catch {}
     setUser(null);
     nav("/auth");
   };
 
   return (
     <div className="flex h-full w-full flex-col bg-white">
-      <div className="flex items-center gap-3 px-6 py-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2563eb] text-white font-bold">L</div>
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-100">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2563eb] text-white font-bold text-sm">EL</div>
         <div>
-          <div className="text-xl font-bold text-[#2563eb] leading-tight">LogiManage</div>
-          <div className="text-xs text-slate-500">Enterprise Logistics</div>
+          <div className="text-base font-bold text-slate-900 leading-tight">Event Logistics India</div>
+          <div className="text-xs text-slate-500">Management Platform</div>
         </div>
       </div>
 
-      <div className="px-4">
+      <div className="px-4 pt-4">
         <Button
           onClick={() => { nav("/admin/events?new=1"); onNavigate?.(); }}
-          className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl h-11 gap-2 font-semibold"
+          className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl h-10 gap-2 font-semibold text-sm"
         >
           <Plus className="h-4 w-4" /> New Event
         </Button>
       </div>
 
-      <nav className="flex-1 px-3 py-6 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {NAV.map((item) => {
           const Icon = item.icon;
           return (
@@ -85,22 +88,22 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 }`
               }
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-4 w-4 shrink-0" />
               {item.label}
             </NavLink>
           );
         })}
       </nav>
 
-      <div className="border-t border-slate-200 px-3 py-4 space-y-1">
+      <div className="border-t border-slate-200 px-3 py-3 space-y-0.5">
         <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
-          <HelpCircle className="h-5 w-5" /> Help
+          <HelpCircle className="h-4 w-4" /> Help
         </button>
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
         >
-          <LogOut className="h-5 w-5" /> Logout
+          <LogOut className="h-4 w-4" /> Logout
         </button>
       </div>
     </div>
@@ -126,7 +129,7 @@ function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
       </button>
       <div className="relative flex-1 max-w-2xl">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-        <Input placeholder="Search logistics, events, or drivers..." className="pl-10 h-10 rounded-lg border-slate-200 bg-slate-50 focus:bg-white" />
+        <Input placeholder="Search events, vehicles, drivers…" className="pl-10 h-10 rounded-lg border-slate-200 bg-slate-50 focus:bg-white" />
       </div>
       <div className="hidden md:flex items-center gap-2">
         <button className="p-2 rounded-lg hover:bg-slate-100"><Bell className="h-5 w-5 text-slate-600" /></button>
@@ -177,7 +180,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-[#faf8ff] text-slate-900 font-sans" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <div className="flex">
         {/* Desktop sidebar */}
-        <aside className="hidden md:flex md:w-64 lg:w-72 shrink-0 border-r border-slate-200 min-h-screen sticky top-0">
+        <aside className="hidden md:flex md:w-64 lg:w-72 shrink-0 border-r border-slate-200 min-h-screen sticky top-0 h-screen flex-col">
           <SidebarContent />
         </aside>
 

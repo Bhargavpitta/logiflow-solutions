@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import XLSX from "xlsx";
+import bcrypt from "bcryptjs";
 import { query } from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -205,6 +206,19 @@ export async function ensureSchema() {
       organizer_name TEXT,
       organizer_number TEXT,
       alt_number TEXT,
+      location TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS public.hosts (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      host_name TEXT NOT NULL,
+      contact_number TEXT,
+      alt_number TEXT,
+      location TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
@@ -218,9 +232,42 @@ export async function ensureSchema() {
       vehicle_name TEXT NOT NULL DEFAULT 'Innova Crysta',
       vehicle_number TEXT NOT NULL,
       vehicle_model TEXT NOT NULL DEFAULT 'Innova Crysta',
+      vehicle_type TEXT,
+      model_year TEXT,
+      location TEXT,
       ownership TEXT NOT NULL CHECK (ownership IN ('own', 'rent', 'agency')),
       agency_id UUID REFERENCES public.agencies(id) ON DELETE SET NULL,
       status TEXT NOT NULL DEFAULT 'available',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS public.event_management_companies (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      company_name TEXT NOT NULL,
+      organizer_name TEXT,
+      mobile TEXT,
+      alt_mobile TEXT,
+      email TEXT,
+      location TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS public.drivers (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      driver_name TEXT NOT NULL,
+      contact_number TEXT,
+      alt_number TEXT,
+      license_id TEXT,
+      location TEXT,
+      driver_type TEXT NOT NULL DEFAULT 'driver_owner' CHECK (driver_type IN ('agency_driver', 'driver_owner')),
+      agency_id UUID REFERENCES public.agencies(id) ON DELETE SET NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
@@ -234,6 +281,9 @@ export async function ensureSchema() {
       to_date DATE NOT NULL,
       organizer_name TEXT,
       organizer_number TEXT,
+      host_id UUID REFERENCES public.hosts(id) ON DELETE SET NULL,
+      event_company_id UUID REFERENCES public.event_management_companies(id) ON DELETE SET NULL,
+      location TEXT,
       status TEXT NOT NULL DEFAULT 'pending',
       created_by UUID,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -249,21 +299,12 @@ export async function ensureSchema() {
       day_date DATE NOT NULL,
       start_time TIME,
       end_time TIME,
+      driver_id UUID REFERENCES public.drivers(id) ON DELETE SET NULL,
+      starting_meter NUMERIC,
+      ending_meter NUMERIC,
+      rate_card TEXT,
+      reporting_time TIME,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await query(`
-    CREATE TABLE IF NOT EXISTS public.event_management_companies (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      company_name TEXT NOT NULL,
-      organizer_name TEXT,
-      mobile TEXT,
-      alt_mobile TEXT,
-      email TEXT,
-      status TEXT NOT NULL DEFAULT 'active',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
 
@@ -292,6 +333,21 @@ export async function ensureSchema() {
     );
   `);
 
+  // Migrate existing tables to add new columns (idempotent)
+  await query(`ALTER TABLE public.agencies ADD COLUMN IF NOT EXISTS location TEXT`);
+  await query(`ALTER TABLE public.vehicles ADD COLUMN IF NOT EXISTS vehicle_type TEXT`);
+  await query(`ALTER TABLE public.vehicles ADD COLUMN IF NOT EXISTS model_year TEXT`);
+  await query(`ALTER TABLE public.vehicles ADD COLUMN IF NOT EXISTS location TEXT`);
+  await query(`ALTER TABLE public.event_management_companies ADD COLUMN IF NOT EXISTS location TEXT`);
+  await query(`ALTER TABLE public.events ADD COLUMN IF NOT EXISTS host_id UUID REFERENCES public.hosts(id) ON DELETE SET NULL`);
+  await query(`ALTER TABLE public.events ADD COLUMN IF NOT EXISTS event_company_id UUID REFERENCES public.event_management_companies(id) ON DELETE SET NULL`);
+  await query(`ALTER TABLE public.events ADD COLUMN IF NOT EXISTS location TEXT`);
+  await query(`ALTER TABLE public.event_vehicles ADD COLUMN IF NOT EXISTS driver_id UUID REFERENCES public.drivers(id) ON DELETE SET NULL`);
+  await query(`ALTER TABLE public.event_vehicles ADD COLUMN IF NOT EXISTS starting_meter NUMERIC`);
+  await query(`ALTER TABLE public.event_vehicles ADD COLUMN IF NOT EXISTS ending_meter NUMERIC`);
+  await query(`ALTER TABLE public.event_vehicles ADD COLUMN IF NOT EXISTS rate_card TEXT`);
+  await query(`ALTER TABLE public.event_vehicles ADD COLUMN IF NOT EXISTS reporting_time TIME`);
+
   await query(`CREATE UNIQUE INDEX IF NOT EXISTS agencies_agency_name_key ON public.agencies (agency_name);`);
   await query(`CREATE UNIQUE INDEX IF NOT EXISTS vehicles_vehicle_number_key ON public.vehicles (vehicle_number);`);
   await query(
@@ -308,61 +364,42 @@ export async function ensureSchema() {
     $$ LANGUAGE plpgsql;
   `);
 
-  await query(`
-    DROP TRIGGER IF EXISTS app_users_touch_updated_at ON app_users;
-    CREATE TRIGGER app_users_touch_updated_at
-    BEFORE UPDATE ON app_users
-    FOR EACH ROW
-    EXECUTE FUNCTION touch_updated_at();
-  `);
-
-  await query(`
-    DROP TRIGGER IF EXISTS logistics_entries_touch_updated_at ON logistics_entries;
-    CREATE TRIGGER logistics_entries_touch_updated_at
-    BEFORE UPDATE ON logistics_entries
-    FOR EACH ROW
-    EXECUTE FUNCTION touch_updated_at();
-  `);
-
-  await query(`
-    DROP TRIGGER IF EXISTS agencies_touch_updated_at ON public.agencies;
-    CREATE TRIGGER agencies_touch_updated_at
-    BEFORE UPDATE ON public.agencies
-    FOR EACH ROW
-    EXECUTE FUNCTION touch_updated_at();
-  `);
-
-  await query(`
-    DROP TRIGGER IF EXISTS vehicles_touch_updated_at ON public.vehicles;
-    CREATE TRIGGER vehicles_touch_updated_at
-    BEFORE UPDATE ON public.vehicles
-    FOR EACH ROW
-    EXECUTE FUNCTION touch_updated_at();
-  `);
-
-  await query(`
-    DROP TRIGGER IF EXISTS events_touch_updated_at ON public.events;
-    CREATE TRIGGER events_touch_updated_at
-    BEFORE UPDATE ON public.events
-    FOR EACH ROW
-    EXECUTE FUNCTION touch_updated_at();
-  `);
-
-  await query(`
-    DROP TRIGGER IF EXISTS emc_touch_updated_at ON public.event_management_companies;
-    CREATE TRIGGER emc_touch_updated_at
-    BEFORE UPDATE ON public.event_management_companies
-    FOR EACH ROW
-    EXECUTE FUNCTION touch_updated_at();
-  `);
-
-  await query(`
-    DROP TRIGGER IF EXISTS driver_trip_logs_touch_updated_at ON public.driver_trip_logs;
-    CREATE TRIGGER driver_trip_logs_touch_updated_at
-    BEFORE UPDATE ON public.driver_trip_logs
-    FOR EACH ROW
-    EXECUTE FUNCTION touch_updated_at();
-  `);
+  for (const [tbl, trigger] of [
+    ["app_users", "app_users_touch_updated_at"],
+    ["logistics_entries", "logistics_entries_touch_updated_at"],
+    ["public.agencies", "agencies_touch_updated_at"],
+    ["public.hosts", "hosts_touch_updated_at"],
+    ["public.vehicles", "vehicles_touch_updated_at"],
+    ["public.drivers", "drivers_touch_updated_at"],
+    ["public.events", "events_touch_updated_at"],
+    ["public.event_management_companies", "emc_touch_updated_at"],
+    ["public.driver_trip_logs", "driver_trip_logs_touch_updated_at"],
+  ]) {
+    await query(`
+      DROP TRIGGER IF EXISTS ${trigger} ON ${tbl};
+      CREATE TRIGGER ${trigger}
+      BEFORE UPDATE ON ${tbl}
+      FOR EACH ROW
+      EXECUTE FUNCTION touch_updated_at();
+    `);
+  }
 
   await ensureDriverMasterSeed();
+  await ensureAdminUser();
+}
+
+async function ensureAdminUser() {
+  const { rows } = await query("SELECT id FROM app_users WHERE email = 'admin'");
+  if (rows.length > 0) return;
+
+  const passwordHash = await bcrypt.hash("admin@123", 12);
+  const adminId = crypto.randomUUID();
+  await query(
+    "INSERT INTO app_users (id, email, password_hash, name) VALUES ($1, $2, $3, $4)",
+    [adminId, "admin", passwordHash, "Admin"],
+  );
+  await query(
+    "INSERT INTO user_roles (id, user_id, role) VALUES ($1, $2, 'admin') ON CONFLICT (user_id, role) DO NOTHING",
+    [crypto.randomUUID(), adminId],
+  );
 }

@@ -14,6 +14,10 @@ import AdminDashboard from "./pages/admin/Dashboard.tsx";
 import AdminEvents from "./pages/admin/Events.tsx";
 import AdminEMC from "./pages/admin/EMC.tsx";
 import AdminLogistics from "./pages/admin/Logistics.tsx";
+import AdminHosts from "./pages/admin/Hosts.tsx";
+import AdminDrivers from "./pages/admin/Drivers.tsx";
+import AdminAgencies from "./pages/admin/Agencies.tsx";
+import AdminVehicles from "./pages/admin/Vehicles.tsx";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +37,10 @@ const App = () => (
               <Route path="/admin/events" element={<AdminEvents />} />
               <Route path="/admin/emc" element={<AdminEMC />} />
               <Route path="/admin/logistics" element={<AdminLogistics />} />
+              <Route path="/admin/hosts" element={<AdminHosts />} />
+              <Route path="/admin/drivers" element={<AdminDrivers />} />
+              <Route path="/admin/agencies" element={<AdminAgencies />} />
+              <Route path="/admin/vehicles" element={<AdminVehicles />} />
               <Route path="/my" element={<Dashboard mode="user" />} />
               <Route path="/entry" element={<EntryForm />} />
               <Route path="/entry/:id" element={<EntryForm />} />
