@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { adminApi, type Vehicle, LOCATIONS } from "@/lib/admin-api";
 import { toast } from "sonner";
 
+const VEHICLE_TYPE_OPTIONS = ["GX", "GX PLUS", "VX", "ZX"] as const;
+
 const emptyForm = () => ({
   vehicle_name: "",
   vehicle_number: "",
@@ -172,7 +174,18 @@ export default function VehiclesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-2">
                 <Label>Vehicle Type</Label>
-                <Input value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} placeholder="e.g. SUV, Sedan" />
+                <Select value={form.vehicle_type} onValueChange={(v) => setForm({ ...form, vehicle_type: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select vehicle type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VEHICLE_TYPE_OPTIONS.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
                 <Label>Vehicle Model Year</Label>
