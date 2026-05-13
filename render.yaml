@@ -3,7 +3,7 @@ services:
     type: web
     runtime: node
     plan: free
-    region: oregon
+    region: singapore
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /api/health
@@ -43,6 +43,6 @@ services:
 databases:
   - name: logiflow-db
     plan: free
-    region: oregon
+    region: singapore
     databaseName: logiflow
     postgresMajorVersion: "18"
