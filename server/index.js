@@ -159,6 +159,10 @@ function toUser(row) {
   };
 }
 
+function toRole(email, currentRole) {
+  return isAdminEmail(email) ? "admin" : currentRole || "user";
+}
+
 async function getUserWithRoleById(id) {
   const result = await query(
     `
@@ -182,7 +186,7 @@ async function getUserWithRoleById(id) {
 }
 
 async function ensureUserRole(client, userId, email) {
-  const role = isAdminEmail(email) ? "admin" : "user";
+  const role = toRole(email, "user");
   await client.query(
     `
       INSERT INTO user_roles (id, user_id, role)
@@ -268,8 +272,13 @@ app.post("/api/auth/login", async (req, res, next) => {
     if (!row?.password_hash) return res.status(401).json({ error: "Invalid email or password." });
     const ok = await verifyPassword(parsed.password, row.password_hash);
     if (!ok) return res.status(401).json({ error: "Invalid email or password." });
-    await withTransaction(async (client) => { await ensureUserRole(client, row.id, email); });
-    const user = await getUserWithRoleById(row.id);
+    const role = toRole(email, row.role);
+    if (role !== row.role) {
+      await withTransaction(async (client) => {
+        await ensureUserRole(client, row.id, email);
+      });
+    }
+    const user = toUser({ ...row, role });
     setSessionCookie(res, signSession(user));
     res.json({ user });
   } catch (error) { next(error); }

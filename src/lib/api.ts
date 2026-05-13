@@ -1,4 +1,15 @@
-export const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3001/api").replace(/\/$/, "");
+function normalizeApiUrl(rawValue?: string) {
+  const fallback = "http://localhost:3001/api";
+  const value = (rawValue || fallback).trim().replace(/\/+$/, "");
+
+  if (/\/api$/i.test(value)) {
+    return value;
+  }
+
+  return `${value}/api`;
+}
+
+export const API_URL = normalizeApiUrl(import.meta.env.VITE_API_URL);
 const hasPlaceholderRenderUrl = /your-backend-service\.onrender\.com/i.test(API_URL);
 
 export interface AppUser {
